@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import Navbar from '@/components/Navbar';
@@ -8,7 +7,6 @@ import { ArrowRight, Mail, MapPin, PhoneCall, Code, Database, Layout, Users } fr
 import { Link } from 'react-router-dom';
 
 const About = () => {
-  // Scroll to top on page load
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
@@ -62,7 +60,6 @@ const About = () => {
     <div className="min-h-screen bg-background">
       <Navbar />
       
-      {/* Hero Section */}
       <section className="relative pt-20 pb-20 lg:pb-32 overflow-hidden">
         <div className="absolute inset-0 z-0">
           <div className="absolute inset-0 bg-gradient-to-b from-background via-background/95 to-background z-10" />
@@ -89,7 +86,6 @@ const About = () => {
         </div>
       </section>
       
-      {/* Our Story Section */}
       <section className="py-20 bg-muted/20">
         <div className="container">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
@@ -142,7 +138,6 @@ const About = () => {
         </div>
       </section>
       
-      {/* Mission & Values Section */}
       <section className="py-20">
         <div className="container">
           <div className="text-center max-w-3xl mx-auto mb-16">
@@ -231,7 +226,6 @@ const About = () => {
         </div>
       </section>
       
-      {/* Team Section */}
       <section className="py-20 bg-muted/30">
         <div className="container">
           <div className="text-center max-w-3xl mx-auto mb-16">
@@ -273,7 +267,6 @@ const About = () => {
         </div>
       </section>
       
-      {/* Office Section */}
       <section className="py-20">
         <div className="container">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
@@ -358,7 +351,6 @@ const About = () => {
         </div>
       </section>
       
-      {/* CTA Section */}
       <section className="py-20 bg-primary/5">
         <div className="container">
           <div className="text-center max-w-3xl mx-auto">

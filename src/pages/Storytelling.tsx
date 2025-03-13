@@ -1,769 +1,466 @@
 
 import { useState, useEffect } from 'react';
-import { useToast } from "@/hooks/use-toast";
-import { 
-  Headphones, 
-  PlayCircle, 
-  PauseCircle, 
-  ArrowRight, 
-  Clock, 
-  Tag,
-  Mic,
-  Search, 
-  Filter, 
-  ChevronDown
-} from 'lucide-react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
 import { motion } from 'framer-motion';
-import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { 
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from '@/components/ui/accordion';
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from '@/components/ui/sheet';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { ArrowRight, Play, Pause, SkipBack, SkipForward, Volume2, VolumeX, Headphones, FileAudio, Upload } from 'lucide-react';
+import Navbar from '@/components/Navbar';
+import Footer from '@/components/Footer';
+
+// Form schema for the storyteller request
+const formSchema = z.object({
+  name: z.string().min(2, {
+    message: "Name must be at least 2 characters.",
+  }),
+  email: z.string().email({
+    message: "Please enter a valid email address.",
+  }),
+  storyTitle: z.string().min(5, {
+    message: "Story title must be at least 5 characters.",
+  }),
+  storyOutline: z.string().min(50, {
+    message: "Story outline must be at least 50 characters.",
+  }),
+  // Audio upload is optional
+});
 
 // Mock data for stories
 const stories = [
   {
-    id: '1',
-    title: 'Building Resilience: My Journey from Startup Failure to Success',
-    excerpt: 'Tech entrepreneur Sarah Chen shares her five-minute story of perseverance through the challenges of her first failed startup and how it led to her current success.',
-    imageUrl: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1674&q=80',
-    audioUrl: '#',
-    duration: '5 min',
-    author: 'Sarah Chen',
-    category: 'Entrepreneurship',
-    date: 'June 15, 2023',
-    featured: true
+    id: 1,
+    title: "Building Resilience: My Journey from Startup Failure to Success",
+    author: "Sarah Chen",
+    duration: "5:12",
+    category: "Entrepreneurship",
+    date: "June 15, 2023",
+    description: "Sarah shares her story of perseverance through the challenges of her first failed startup and how it led to her current success.",
+    audioSrc: "#",
+    image: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1674&q=80"
   },
   {
-    id: '2',
-    title: 'How AI Transformed My Small Business',
-    excerpt: 'Small business owner James Wilson explains how integrating AI tools helped him compete with larger companies and grow his customer base.',
-    imageUrl: 'https://images.unsplash.com/photo-1664575599736-c5197c684128?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1674&q=80',
-    audioUrl: '#',
-    duration: '4 min',
-    author: 'James Wilson',
-    category: 'Tech Tales',
-    date: 'July 2, 2023',
-    featured: true
+    id: 2,
+    title: "From Garage to Google: How I Landed My Dream Job",
+    author: "David Park",
+    duration: "4:45",
+    category: "Career Growth",
+    date: "May 20, 2023",
+    description: "David's journey from coding in his garage to securing a position at one of the world's leading tech companies.",
+    audioSrc: "#",
+    image: "https://images.unsplash.com/photo-1515378791036-0648a3ef77b2?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1170&q=80"
   },
   {
-    id: '3',
-    title: 'Coding Through a Pandemic: Remote Work Evolution',
-    excerpt: 'Software developer Maya Patel shares her experience transitioning to remote work during the pandemic and how it changed her approach to coding and collaboration.',
-    imageUrl: 'https://images.unsplash.com/photo-1623479322729-28b25c16b011?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1674&q=80',
-    audioUrl: '#',
-    duration: '5 min',
-    author: 'Maya Patel',
-    category: 'User Experiences',
-    date: 'August 10, 2023',
-    featured: false
+    id: 3,
+    title: "The Ethical Dilemma of AI Development",
+    author: "Maya Rodriguez",
+    duration: "5:30",
+    category: "Tech Ethics",
+    date: "June 5, 2023",
+    description: "Maya discusses the moral challenges she faced while working on an AI project and how she navigated these complex waters.",
+    audioSrc: "#",
+    image: "https://images.unsplash.com/photo-1531746790731-6c087fecd65a?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1674&q=80"
   },
   {
-    id: '4',
-    title: 'From Corporate to Freelance: My Tech Journey',
-    excerpt: 'Former corporate employee Alex Johnson describes his transition to freelance web development and the challenges and rewards of being his own boss.',
-    imageUrl: 'https://images.unsplash.com/photo-1562098824-58910964a854?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1674&q=80',
-    audioUrl: '#',
-    duration: '4 min',
-    author: 'Alex Johnson',
-    category: 'User Experiences',
-    date: 'August 25, 2023',
-    featured: false
+    id: 4,
+    title: "Breaking the Glass Ceiling in Tech",
+    author: "Lisa Johnson",
+    duration: "4:55",
+    category: "Diversity in Tech",
+    date: "July 1, 2023",
+    description: "Lisa shares her experience as a woman in tech leadership and the challenges she overcame to reach her position.",
+    audioSrc: "#",
+    image: "https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1170&q=80"
   },
   {
-    id: '5',
-    title: 'The Day My App Went Viral',
-    excerpt: 'Developer Sophia Lee recounts the unexpected day her side project went viral and how she handled the sudden success and scaling challenges.',
-    imageUrl: 'https://images.unsplash.com/photo-1601972599720-36938d4ecd31?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1674&q=80',
-    audioUrl: '#',
-    duration: '5 min',
-    author: 'Sophia Lee',
-    category: 'Inspirational',
-    date: 'September 5, 2023',
-    featured: true
+    id: 5,
+    title: "Open Source: Building a Community Around Your Project",
+    author: "Raj Patel",
+    duration: "5:15",
+    category: "Open Source",
+    date: "June 28, 2023",
+    description: "Raj explains how he grew his open-source project from a personal tool to a community-supported platform with thousands of users.",
+    audioSrc: "#",
+    image: "https://images.unsplash.com/photo-1528901166007-3784c7dd3653?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1170&q=80"
   },
   {
-    id: '6',
-    title: 'Bootstrapping vs Funding: Lessons Learned',
-    excerpt: 'Entrepreneur David Kim compares his experiences bootstrapping his first startup and raising venture capital for his second, sharing insights on which approach might be best for different scenarios.',
-    imageUrl: 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1674&q=80',
-    audioUrl: '#',
-    duration: '5 min',
-    author: 'David Kim',
-    category: 'Entrepreneurship',
-    date: 'September 20, 2023',
-    featured: false
+    id: 6,
+    title: "Finding Work-Life Balance in a Startup Environment",
+    author: "Emma Chen",
+    duration: "5:05",
+    category: "Wellbeing",
+    date: "July 10, 2023",
+    description: "Emma discusses the importance of setting boundaries and maintaining wellness while working in the fast-paced startup world.",
+    audioSrc: "#",
+    image: "https://images.unsplash.com/photo-1499750310107-5fef28a66643?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1170&q=80"
   }
 ];
 
-// Featured story
-const featuredStory = stories.find(story => story.id === '1');
-
-// Audio player component
-const AudioPlayer = ({ story }: { story: typeof stories[0] }) => {
-  const [isPlaying, setIsPlaying] = useState(false);
-
-  const togglePlay = () => {
-    setIsPlaying(!isPlaying);
-  };
-
-  return (
-    <div className="flex items-center space-x-3 p-3 bg-black/5 rounded-lg">
-      <button 
-        onClick={togglePlay}
-        className="p-1 rounded-full hover:bg-white/20 transition-colors"
-        aria-label={isPlaying ? "Pause" : "Play"}
-      >
-        {isPlaying ? (
-          <PauseCircle className="w-10 h-10 text-primary" />
-        ) : (
-          <PlayCircle className="w-10 h-10 text-primary" />
-        )}
-      </button>
-      <div className="flex-1">
-        <div className="h-1.5 w-full bg-gray-200 rounded-full overflow-hidden">
-          <div className="h-full bg-primary" style={{ width: isPlaying ? '45%' : '0%', transition: 'width 1s linear' }} />
-        </div>
-        <div className="flex justify-between text-xs mt-1">
-          <span>{isPlaying ? '2:15' : '0:00'}</span>
-          <span>{story.duration}</span>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// Story card component
-const StoryCard = ({ story }: { story: typeof stories[0] }) => {
-  return (
-    <div className="group bg-white dark:bg-black/10 rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-all duration-300">
-      <div className="aspect-video relative overflow-hidden">
-        <img
-          src={story.imageUrl}
-          alt={story.title}
-          className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex items-end p-4">
-          <div className="flex items-center text-white space-x-2">
-            <Headphones className="w-4 h-4" />
-            <span className="text-xs">{story.duration}</span>
-          </div>
-        </div>
-      </div>
-      <div className="p-5">
-        <div className="flex justify-between items-start mb-2">
-          <span className="inline-block px-2 py-1 bg-primary/10 text-primary text-xs font-medium rounded-full">
-            {story.category}
-          </span>
-          <span className="text-xs text-muted-foreground">{story.date}</span>
-        </div>
-        <h3 className="font-bold text-lg mb-2 line-clamp-2 group-hover:text-primary transition-colors">
-          {story.title}
-        </h3>
-        <p className="text-muted-foreground text-sm mb-4 line-clamp-2">
-          {story.excerpt}
-        </p>
-        <div className="flex items-center justify-between">
-          <span className="text-xs">By {story.author}</span>
-          <AudioPlayer story={story} />
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// Guest request form 
-const GuestRequestForm = () => {
-  const { toast } = useToast();
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    storyTitle: '',
-    storyOutline: '',
-    audioFile: null as File | null
-  });
-  const [errors, setErrors] = useState({
-    name: '',
-    email: '',
-    storyTitle: '',
-    storyOutline: ''
-  });
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value
-    });
-    
-    // Clear error when user types
-    if (errors[name as keyof typeof errors]) {
-      setErrors({
-        ...errors,
-        [name]: ''
-      });
-    }
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setFormData({
-        ...formData,
-        audioFile: e.target.files[0]
-      });
-    }
-  };
-
-  const validateForm = () => {
-    const newErrors = {
-      name: '',
-      email: '',
-      storyTitle: '',
-      storyOutline: ''
-    };
-    
-    let isValid = true;
-    
-    if (!formData.name.trim()) {
-      newErrors.name = 'Name is required';
-      isValid = false;
-    }
-    
-    if (!formData.email.trim()) {
-      newErrors.email = 'Email is required';
-      isValid = false;
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'Email is invalid';
-      isValid = false;
-    }
-    
-    if (!formData.storyTitle.trim()) {
-      newErrors.storyTitle = 'Story title is required';
-      isValid = false;
-    }
-    
-    if (!formData.storyOutline.trim()) {
-      newErrors.storyOutline = 'Story outline is required';
-      isValid = false;
-    }
-    
-    setErrors(newErrors);
-    return isValid;
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (validateForm()) {
-      // Here would be the API call to submit the form
-      console.log('Form submitted:', formData);
-      
-      toast({
-        title: "Request Submitted!",
-        description: "Your storyteller request has been received. We'll review it and get back to you soon.",
-      });
-      
-      // Reset form
-      setFormData({
-        name: '',
-        email: '',
-        storyTitle: '',
-        storyOutline: '',
-        audioFile: null
-      });
-    }
-  };
-
-  return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="space-y-2">
-        <Label htmlFor="name">Name <span className="text-red-500">*</span></Label>
-        <Input
-          id="name"
-          name="name"
-          value={formData.name}
-          onChange={handleInputChange}
-          aria-describedby="name-error"
-        />
-        {errors.name && <p id="name-error" className="text-sm text-red-500">{errors.name}</p>}
-      </div>
-      
-      <div className="space-y-2">
-        <Label htmlFor="email">Email <span className="text-red-500">*</span></Label>
-        <Input
-          id="email"
-          name="email"
-          type="email"
-          value={formData.email}
-          onChange={handleInputChange}
-          aria-describedby="email-error"
-        />
-        {errors.email && <p id="email-error" className="text-sm text-red-500">{errors.email}</p>}
-      </div>
-      
-      <div className="space-y-2">
-        <Label htmlFor="storyTitle">Story Title <span className="text-red-500">*</span></Label>
-        <Input
-          id="storyTitle"
-          name="storyTitle"
-          value={formData.storyTitle}
-          onChange={handleInputChange}
-          aria-describedby="storyTitle-error"
-        />
-        {errors.storyTitle && <p id="storyTitle-error" className="text-sm text-red-500">{errors.storyTitle}</p>}
-      </div>
-      
-      <div className="space-y-2">
-        <Label htmlFor="storyOutline">Story Outline <span className="text-red-500">*</span></Label>
-        <Textarea
-          id="storyOutline"
-          name="storyOutline"
-          value={formData.storyOutline}
-          onChange={handleInputChange}
-          rows={4}
-          aria-describedby="storyOutline-error"
-        />
-        {errors.storyOutline && <p id="storyOutline-error" className="text-sm text-red-500">{errors.storyOutline}</p>}
-      </div>
-      
-      <div className="space-y-2">
-        <Label htmlFor="audioFile">Audio File (optional)</Label>
-        <Input
-          id="audioFile"
-          name="audioFile"
-          type="file"
-          accept="audio/*"
-          onChange={handleFileChange}
-          className="cursor-pointer"
-        />
-        <p className="text-xs text-muted-foreground">Upload an audio sample or demo (MP3, WAV, max 10MB)</p>
-      </div>
-      
-      <Button type="submit" className="w-full">Submit Request</Button>
-      
-      <p className="text-xs text-muted-foreground text-center">
-        All submissions are reviewed by our team. If approved, we'll contact you to schedule a recording session.
-      </p>
-    </form>
-  );
-};
+// Categories for filtering
+const categories = [
+  "All", "Entrepreneurship", "Career Growth", "Tech Ethics", "Diversity in Tech", "Open Source", "Wellbeing"
+];
 
 const Storytelling = () => {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [categoryFilter, setCategoryFilter] = useState('all');
-  const [filteredStories, setFilteredStories] = useState(stories);
-  
-  // Filter stories based on search and category
-  useEffect(() => {
-    let result = stories;
-    
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      result = result.filter(story => 
-        story.title.toLowerCase().includes(query) ||
-        story.excerpt.toLowerCase().includes(query) ||
-        story.author.toLowerCase().includes(query)
-      );
-    }
-    
-    if (categoryFilter !== 'all') {
-      result = result.filter(story => story.category === categoryFilter);
-    }
-    
-    setFilteredStories(result);
-  }, [searchQuery, categoryFilter]);
+  const [selectedStory, setSelectedStory] = useState<typeof stories[0] | null>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [volume, setVolume] = useState(80);
+  const [isMuted, setIsMuted] = useState(false);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [activeCategory, setActiveCategory] = useState("All");
 
   // Scroll to top on page load
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
 
+  // Initialize form for the storyteller request
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      name: "",
+      email: "",
+      storyTitle: "",
+      storyOutline: "",
+    },
+  });
+
+  // Form submission handler
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    setIsSubmitting(true);
+    
+    // Simulate API call
+    setTimeout(() => {
+      setIsSubmitting(false);
+      toast.success("Request submitted successfully!", {
+        description: "We'll review your story and get back to you soon.",
+      });
+      form.reset();
+    }, 1500);
+  };
+
+  // Filter stories based on selected category
+  const filteredStories = activeCategory === "All" 
+    ? stories 
+    : stories.filter(story => story.category === activeCategory);
+
+  // Toggle play/pause
+  const togglePlayPause = () => {
+    setIsPlaying(!isPlaying);
+  };
+
+  // Toggle mute
+  const toggleMute = () => {
+    setIsMuted(!isMuted);
+  };
+
+  // Handle story selection
+  const handleStorySelect = (story: typeof stories[0]) => {
+    setSelectedStory(story);
+    setIsPlaying(true);
+    setCurrentTime(0);
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
       
       {/* Hero Section */}
-      <section className="relative pt-20 pb-40 overflow-hidden">
+      <section className="relative pt-20 pb-20 lg:pb-32 overflow-hidden">
         <div className="absolute inset-0 z-0">
-          <div className="absolute inset-0 bg-gradient-to-r from-background to-background/20 z-10" />
-          {featuredStory && (
-            <img
-              src={featuredStory.imageUrl}
-              alt="Background"
-              className="w-full h-full object-cover opacity-20"
-            />
-          )}
+          <div className="absolute inset-0 bg-gradient-to-b from-background via-background/95 to-background z-10" />
+          <img
+            src="https://images.unsplash.com/photo-1520333789090-1afc82db536a?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2071&q=80"
+            alt="Person with headphones"
+            className="w-full h-full object-cover opacity-30"
+          />
         </div>
         
         <div className="container relative z-10 pt-20">
-          <div className="max-w-3xl mx-auto text-center mb-8">
+          <div className="max-w-3xl mx-auto">
             <span className="inline-block mb-3 px-3 py-1 bg-primary/10 text-primary text-xs font-medium rounded-full">
               5-Minute Stories
             </span>
             <h1 className="text-4xl md:text-5xl font-bold mb-6">
-              Tech Stories That Inspire & Inform
+              Listen to Inspiring Tech Stories
             </h1>
             <p className="text-lg text-muted-foreground mb-8">
-              Listen to 5-minute stories from entrepreneurs, developers, and innovators 
-              sharing their real experiences in the world of technology.
+              Discover five-minute stories from entrepreneurs, innovators, and creators in the tech world. 
+              These bite-sized audio experiences offer valuable insights into the journey of turning ideas into reality.
             </p>
-            
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Dialog>
-                <DialogTrigger asChild>
-                  <Button variant="default" className="flex items-center gap-2">
-                    <Mic className="w-4 h-4" />
-                    Become a Guest Storyteller
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-[550px]">
-                  <DialogHeader>
-                    <DialogTitle>Become a Guest Storyteller</DialogTitle>
-                    <DialogDescription>
-                      Share your tech journey in a 5-minute story. Fill out the form below to apply.
-                    </DialogDescription>
-                  </DialogHeader>
-                  <GuestRequestForm />
-                </DialogContent>
-              </Dialog>
-              
-              <Button variant="outline" className="flex items-center gap-2">
-                <Headphones className="w-4 h-4" />
-                How It Works
-              </Button>
+            <div className="flex flex-wrap gap-3">
+              {categories.map((category) => (
+                <button
+                  key={category}
+                  onClick={() => setActiveCategory(category)}
+                  className={`px-4 py-2 rounded-full text-sm font-medium ${
+                    activeCategory === category
+                      ? 'bg-primary text-white'
+                      : 'bg-muted hover:bg-muted/80'
+                  }`}
+                >
+                  {category}
+                </button>
+              ))}
             </div>
           </div>
         </div>
       </section>
       
-      {/* Featured Story Section */}
-      {featuredStory && (
-        <section className="py-20 bg-muted/30">
-          <div className="container">
-            <div className="text-center max-w-3xl mx-auto mb-16">
+      {/* Stories Section */}
+      <section className="py-20">
+        <div className="container">
+          {/* Audio Player (shows when a story is selected) */}
+          {selectedStory && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              className="bg-white dark:bg-black/10 rounded-lg shadow-sm p-6 mb-12"
+            >
+              <div className="flex flex-col md:flex-row gap-6 items-center">
+                <div className="w-full md:w-1/4">
+                  <div className="aspect-square rounded-lg overflow-hidden">
+                    <img 
+                      src={selectedStory.image} 
+                      alt={selectedStory.title} 
+                      className="w-full h-full object-cover" 
+                    />
+                  </div>
+                </div>
+                
+                <div className="flex-1">
+                  <div className="mb-4">
+                    <span className="text-xs text-primary font-semibold uppercase">{selectedStory.category}</span>
+                    <h3 className="text-xl font-bold mt-1">{selectedStory.title}</h3>
+                    <p className="text-sm text-muted-foreground">By {selectedStory.author} • {selectedStory.date}</p>
+                  </div>
+                  
+                  <p className="text-muted-foreground text-sm mb-4">
+                    {selectedStory.description}
+                  </p>
+                  
+                  <div className="space-y-3">
+                    {/* Progress bar */}
+                    <div className="relative h-2 bg-muted rounded-full overflow-hidden">
+                      <div 
+                        className="absolute left-0 top-0 h-full bg-primary" 
+                        style={{ width: `${(currentTime / 312) * 100}%` }}
+                      ></div>
+                    </div>
+                    
+                    <div className="flex justify-between text-xs text-muted-foreground">
+                      <span>{Math.floor(currentTime / 60)}:{(currentTime % 60).toString().padStart(2, '0')}</span>
+                      <span>{selectedStory.duration}</span>
+                    </div>
+                    
+                    {/* Controls */}
+                    <div className="flex items-center justify-center gap-4">
+                      <button className="text-muted-foreground hover:text-foreground">
+                        <SkipBack size={18} />
+                      </button>
+                      
+                      <button 
+                        className="w-12 h-12 rounded-full bg-primary text-white flex items-center justify-center hover:bg-primary/90"
+                        onClick={togglePlayPause}
+                      >
+                        {isPlaying ? <Pause size={20} /> : <Play size={20} className="ml-1" />}
+                      </button>
+                      
+                      <button className="text-muted-foreground hover:text-foreground">
+                        <SkipForward size={18} />
+                      </button>
+                    </div>
+                    
+                    {/* Volume control */}
+                    <div className="flex items-center gap-2">
+                      <button onClick={toggleMute} className="text-muted-foreground hover:text-foreground">
+                        {isMuted ? <VolumeX size={18} /> : <Volume2 size={18} />}
+                      </button>
+                      
+                      <div className="relative h-1 flex-1 bg-muted rounded-full overflow-hidden">
+                        <div 
+                          className="absolute left-0 top-0 h-full bg-primary" 
+                          style={{ width: `${isMuted ? 0 : volume}%` }}
+                        ></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          )}
+          
+          {/* Stories Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {filteredStories.map((story, index) => (
+              <motion.div
+                key={story.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: index * 0.1 }}
+              >
+                <Card className="cursor-pointer hover:shadow-md transition-shadow overflow-hidden h-full flex flex-col"
+                      onClick={() => handleStorySelect(story)}>
+                  <div className="aspect-[16/9] overflow-hidden">
+                    <img 
+                      src={story.image} 
+                      alt={story.title} 
+                      className="w-full h-full object-cover transition-transform duration-300 hover:scale-105" 
+                    />
+                  </div>
+                  <CardHeader className="flex-1">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="inline-block px-3 py-0.5 bg-primary/10 text-primary text-xs font-medium rounded-full">
+                        {story.category}
+                      </span>
+                      <span className="text-xs text-muted-foreground flex items-center">
+                        <Headphones size={12} className="mr-1" />
+                        {story.duration}
+                      </span>
+                    </div>
+                    <CardTitle className="text-lg">{story.title}</CardTitle>
+                    <CardDescription className="line-clamp-2">
+                      {story.description}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardFooter className="pt-0 pb-4 text-sm text-muted-foreground">
+                    By {story.author} • {story.date}
+                  </CardFooter>
+                </Card>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+      
+      {/* Request to Be a Guest Storyteller Section */}
+      <section className="py-20 bg-muted/30">
+        <div className="container">
+          <div className="max-w-4xl mx-auto">
+            <div className="text-center mb-12">
               <span className="inline-block mb-3 px-3 py-1 bg-primary/10 text-primary text-xs font-medium rounded-full">
-                Featured Story
+                Share Your Story
               </span>
               <h2 className="text-3xl md:text-4xl font-bold mb-4">
-                This Week's Highlight
+                Request to Be a Guest Storyteller
               </h2>
-              <p className="text-muted-foreground">
-                Our editorial team's selection for the most inspiring tech story this week.
+              <p className="text-muted-foreground max-w-2xl mx-auto">
+                Have a tech journey or innovation story worth sharing? We'd love to feature you in our 5-minute storytelling series.
+                Fill out the form below to request to be a guest storyteller.
               </p>
             </div>
             
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-              <motion.div
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.6 }}
-                className="relative"
-              >
-                <div className="absolute inset-0 bg-gradient-to-tr from-black/50 to-black/20 rounded-xl z-10" />
-                <img
-                  src={featuredStory.imageUrl}
-                  alt={featuredStory.title}
-                  className="rounded-xl w-full h-full object-cover"
-                  style={{ maxHeight: '500px' }}
-                />
-                <div className="absolute bottom-0 left-0 right-0 p-8 z-20">
-                  <div className="flex items-center mb-3">
-                    <span className="bg-primary text-white text-xs px-3 py-1 rounded-full">
-                      {featuredStory.category}
-                    </span>
-                    <span className="ml-3 text-white/90 text-sm flex items-center">
-                      <Clock className="w-4 h-4 mr-1" />
-                      {featuredStory.duration}
-                    </span>
-                  </div>
-                  <h3 className="text-2xl font-bold text-white mb-2">
-                    {featuredStory.title}
-                  </h3>
-                  <p className="text-white/80 mb-6 line-clamp-2">
-                    {featuredStory.excerpt}
-                  </p>
-                  <div className="flex justify-between items-center">
-                    <span className="text-white/90 text-sm">By {featuredStory.author}</span>
-                  </div>
-                </div>
-              </motion.div>
-              
-              <motion.div
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.6, delay: 0.2 }}
-                className="flex flex-col space-y-8"
-              >
-                <h3 className="text-2xl font-bold">
-                  "{featuredStory.title}"
-                </h3>
-                <p className="text-muted-foreground">
-                  {featuredStory.excerpt}
-                </p>
-                
-                <div className="flex items-center space-x-4">
-                  <div className="w-16 h-16 rounded-full bg-gray-300 flex-shrink-0">
-                    <img
-                      src={`https://ui-avatars.com/api/?name=${featuredStory.author}&background=random`}
-                      alt={featuredStory.author}
-                      className="w-full h-full rounded-full object-cover"
+            <div className="bg-white dark:bg-black/10 rounded-lg shadow-sm p-8">
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <FormField
+                      control={form.control}
+                      name="name"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Full Name</FormLabel>
+                          <FormControl>
+                            <Input placeholder="John Doe" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={form.control}
+                      name="email"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Email address</FormLabel>
+                          <FormControl>
+                            <Input type="email" placeholder="you@example.com" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
                     />
                   </div>
+                  
+                  <FormField
+                    control={form.control}
+                    name="storyTitle"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Story Title</FormLabel>
+                        <FormControl>
+                          <Input placeholder="A catchy title for your 5-minute story" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="storyOutline"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Story Outline</FormLabel>
+                        <FormControl>
+                          <Textarea 
+                            placeholder="Provide a brief outline of your story. What key points will you cover? What's the main takeaway for listeners?"
+                            rows={5}
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
                   <div>
-                    <p className="font-semibold">{featuredStory.author}</p>
-                    <p className="text-sm text-muted-foreground">{featuredStory.category}</p>
-                  </div>
-                </div>
-                
-                <AudioPlayer story={featuredStory} />
-                
-                <div className="space-y-4">
-                  <h4 className="font-semibold">Key Takeaways</h4>
-                  <ul className="space-y-2">
-                    <li className="flex items-start">
-                      <div className="mr-2 mt-1">•</div>
-                      <p className="text-sm">Perseverance through challenges is essential for entrepreneurial success</p>
-                    </li>
-                    <li className="flex items-start">
-                      <div className="mr-2 mt-1">•</div>
-                      <p className="text-sm">Failure provides valuable lessons that contribute to future achievements</p>
-                    </li>
-                    <li className="flex items-start">
-                      <div className="mr-2 mt-1">•</div>
-                      <p className="text-sm">Building a strong support network is crucial for overcoming setbacks</p>
-                    </li>
-                  </ul>
-                </div>
-              </motion.div>
-            </div>
-          </div>
-        </section>
-      )}
-      
-      {/* Browse Stories Section */}
-      <section className="py-20">
-        <div className="container">
-          <div className="flex flex-col md:flex-row justify-between items-center mb-12">
-            <div>
-              <span className="inline-block mb-3 px-3 py-1 bg-primary/10 text-primary text-xs font-medium rounded-full">
-                Browse Stories
-              </span>
-              <h2 className="text-3xl md:text-4xl font-bold">
-                All Stories
-              </h2>
-            </div>
-            
-            {/* Search and filter on desktop */}
-            <div className="hidden md:flex items-center space-x-4 mt-6 md:mt-0">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-                <Input
-                  placeholder="Search stories..."
-                  className="pl-10 w-[250px]"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-              </div>
-              
-              <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Category" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Categories</SelectItem>
-                  <SelectItem value="Entrepreneurship">Entrepreneurship</SelectItem>
-                  <SelectItem value="Tech Tales">Tech Tales</SelectItem>
-                  <SelectItem value="User Experiences">User Experiences</SelectItem>
-                  <SelectItem value="Inspirational">Inspirational</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            
-            {/* Mobile filter button */}
-            <Sheet>
-              <SheetTrigger asChild>
-                <Button variant="outline" className="md:hidden mt-6 flex items-center gap-2">
-                  <Filter className="w-4 h-4" />
-                  <span>Filters</span>
-                </Button>
-              </SheetTrigger>
-              <SheetContent>
-                <SheetHeader>
-                  <SheetTitle>Filters</SheetTitle>
-                  <SheetDescription>
-                    Filter and search for stories
-                  </SheetDescription>
-                </SheetHeader>
-                <div className="py-4 space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="mobile-search">Search</Label>
-                    <div className="relative">
-                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-                      <Input
-                        id="mobile-search"
-                        placeholder="Search stories..."
-                        className="pl-10"
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                      />
+                    <Label htmlFor="audio-upload" className="block mb-2">Audio Upload (optional)</Label>
+                    <div className="border-2 border-dashed border-muted-foreground/20 rounded-lg p-6 text-center">
+                      <FileAudio className="h-10 w-10 mx-auto mb-4 text-muted-foreground" />
+                      <p className="text-sm text-muted-foreground mb-2">
+                        Drag and drop an audio file or
+                      </p>
+                      <div className="flex justify-center">
+                        <Button type="button" variant="outline" size="sm" className="flex items-center gap-2">
+                          <Upload className="h-4 w-4" />
+                          Browse Files
+                        </Button>
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-2">
+                        MP3, WAV, or M4A up to 10MB (5 minutes max)
+                      </p>
                     </div>
                   </div>
                   
-                  <div className="space-y-2">
-                    <Label htmlFor="mobile-category">Category</Label>
-                    <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                      <SelectTrigger id="mobile-category">
-                        <SelectValue placeholder="Category" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Categories</SelectItem>
-                        <SelectItem value="Entrepreneurship">Entrepreneurship</SelectItem>
-                        <SelectItem value="Tech Tales">Tech Tales</SelectItem>
-                        <SelectItem value="User Experiences">User Experiences</SelectItem>
-                        <SelectItem value="Inspirational">Inspirational</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              </SheetContent>
-            </Sheet>
-          </div>
-          
-          {filteredStories.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-              {filteredStories.map((story) => (
-                <StoryCard key={story.id} story={story} />
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-10">
-              <h3 className="text-lg font-medium mb-2">No Stories Found</h3>
-              <p className="text-muted-foreground">Try adjusting your search or filter criteria</p>
-            </div>
-          )}
-          
-          {/* Categories Accordion */}
-          <div className="mt-20">
-            <h3 className="text-2xl font-bold mb-6">Story Categories</h3>
-            <Accordion type="single" collapsible className="w-full">
-              <AccordionItem value="entrepreneurship">
-                <AccordionTrigger className="text-lg">
-                  <div className="flex items-center">
-                    <Tag className="mr-2 h-5 w-5" />
-                    Entrepreneurship
-                  </div>
-                </AccordionTrigger>
-                <AccordionContent>
-                  Stories about starting businesses, overcoming challenges in the startup world, 
-                  and the journey of building something from scratch. Learn from both successes and failures.
-                </AccordionContent>
-              </AccordionItem>
-              
-              <AccordionItem value="tech-tales">
-                <AccordionTrigger className="text-lg">
-                  <div className="flex items-center">
-                    <Tag className="mr-2 h-5 w-5" />
-                    Tech Tales
-                  </div>
-                </AccordionTrigger>
-                <AccordionContent>
-                  Fascinating stories about technology breakthroughs, innovations, and how 
-                  technology has transformed businesses and industries in unexpected ways.
-                </AccordionContent>
-              </AccordionItem>
-              
-              <AccordionItem value="user-experiences">
-                <AccordionTrigger className="text-lg">
-                  <div className="flex items-center">
-                    <Tag className="mr-2 h-5 w-5" />
-                    User Experiences
-                  </div>
-                </AccordionTrigger>
-                <AccordionContent>
-                  Real stories from users and developers about their experiences with products, 
-                  services, or technologies. First-hand accounts that provide valuable insights.
-                </AccordionContent>
-              </AccordionItem>
-              
-              <AccordionItem value="inspirational">
-                <AccordionTrigger className="text-lg">
-                  <div className="flex items-center">
-                    <Tag className="mr-2 h-5 w-5" />
-                    Inspirational
-                  </div>
-                </AccordionTrigger>
-                <AccordionContent>
-                  Motivational stories that inspire action and change. These stories focus on 
-                  overcoming significant obstacles, achieving the impossible, and breaking barriers in tech.
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
-          </div>
-          
-          {/* CTA Section */}
-          <div className="mt-20 bg-muted rounded-xl p-8 md:p-12">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-              <div>
-                <h3 className="text-2xl font-bold mb-4">Have a Story to Share?</h3>
-                <p className="mb-4 text-muted-foreground">
-                  Your tech journey could inspire others. We're looking for authentic 5-minute stories 
-                  about entrepreneurship, development, innovation, and tech experiences.
-                </p>
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button className="flex items-center gap-2">
-                      <Mic className="w-4 h-4" />
-                      Apply to Be a Storyteller
+                  <div className="pt-4">
+                    <Button 
+                      type="submit" 
+                      className="w-full flex items-center justify-center gap-2"
+                      disabled={isSubmitting}
+                    >
+                      {isSubmitting ? (
+                        <>Processing...</>
+                      ) : (
+                        <>Submit Request<ArrowRight size={16} /></>
+                      )}
                     </Button>
-                  </DialogTrigger>
-                  <DialogContent className="sm:max-w-[550px]">
-                    <DialogHeader>
-                      <DialogTitle>Become a Guest Storyteller</DialogTitle>
-                      <DialogDescription>
-                        Share your tech journey in a 5-minute story. Fill out the form below to apply.
-                      </DialogDescription>
-                    </DialogHeader>
-                    <GuestRequestForm />
-                  </DialogContent>
-                </Dialog>
-              </div>
-              <div className="relative h-[200px] md:h-[250px] rounded-lg overflow-hidden">
-                <img
-                  src="https://images.unsplash.com/photo-1610390371998-319b9d4d8a3d?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1674&q=80"
-                  alt="Podcast recording"
-                  className="w-full h-full object-cover"
-                />
-              </div>
+                    <p className="text-xs text-muted-foreground text-center mt-2">
+                      All submissions are reviewed by our team. We'll contact you if your story is selected.
+                    </p>
+                  </div>
+                </form>
+              </Form>
             </div>
           </div>
         </div>
