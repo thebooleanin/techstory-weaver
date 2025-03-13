@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import Navbar from '@/components/Navbar';
@@ -31,7 +32,7 @@ const About = () => {
       name: 'Maya Patel',
       role: 'Lead Developer',
       image: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1674&q=80',
-      bio: 'Maya specializes in front-end and mobile development. She's passionate about creating intuitive user experiences and accessibility in technology.'
+      bio: 'Maya specializes in front-end and mobile development. She is passionate about creating intuitive user experiences and accessibility in technology.'
     },
     {
       id: 4,
@@ -45,7 +46,7 @@ const About = () => {
       name: 'Sophia Lee',
       role: 'UX/UI Designer',
       image: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1674&q=80',
-      bio: 'Sophia brings designs to life with her keen eye for aesthetics and user-centered approach. She creates the visual identity of our projects and ensures they're beautiful and functional.'
+      bio: 'Sophia brings designs to life with her keen eye for aesthetics and user-centered approach. She creates the visual identity of our projects and ensures they are beautiful and functional.'
     },
     {
       id: 6,
