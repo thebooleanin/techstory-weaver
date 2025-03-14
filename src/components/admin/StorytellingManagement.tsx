@@ -1,29 +1,28 @@
-
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { 
-  Table, TableBody, TableCell, TableHead, 
-  TableHeader, TableRow 
+import {
+  Table, TableBody, TableCell, TableHead,
+  TableHeader, TableRow,
 } from '@/components/ui/table';
-import { 
-  Select, SelectContent, SelectItem, 
-  SelectTrigger, SelectValue 
+import {
+  Select, SelectContent, SelectItem,
+  SelectTrigger, SelectValue,
 } from '@/components/ui/select';
-import { 
-  Dialog, DialogContent, DialogDescription, 
-  DialogFooter, DialogHeader, DialogTitle, DialogTrigger 
+import {
+  Dialog, DialogContent, DialogDescription,
+  DialogFooter, DialogHeader, DialogTitle, DialogTrigger,
 } from '@/components/ui/dialog';
-import { 
-  AlertDialog, AlertDialogAction, AlertDialogCancel, 
-  AlertDialogContent, AlertDialogDescription, AlertDialogFooter, 
-  AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger 
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel,
+  AlertDialogContent, AlertDialogDescription, AlertDialogFooter,
+  AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { 
-  Pencil, Trash2, CheckCircle, X, Search, Eye, Star, RefreshCw, FileAudio, Music
+import {
+  Pencil, Trash2, CheckCircle, X, Search, Eye, Star, RefreshCw, FileAudio, Music,
 } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 
@@ -39,7 +38,7 @@ const mockStories = [
     status: 'published',
     featured: true,
     views: 1256,
-    audioFile: 'story_1.mp3'
+    audioFile: 'story_1.mp3',
   },
   {
     id: '2',
@@ -51,7 +50,7 @@ const mockStories = [
     status: 'published',
     featured: false,
     views: 843,
-    audioFile: 'story_2.mp3'
+    audioFile: 'story_2.mp3',
   },
   {
     id: '3',
@@ -63,7 +62,7 @@ const mockStories = [
     status: 'pending',
     featured: false,
     views: 0,
-    audioFile: 'story_3.mp3'
+    audioFile: 'story_3.mp3',
   },
   {
     id: '4',
@@ -75,7 +74,7 @@ const mockStories = [
     status: 'pending',
     featured: false,
     views: 0,
-    audioFile: 'story_4.mp3'
+    audioFile: 'story_4.mp3',
   },
   {
     id: '5',
@@ -87,7 +86,7 @@ const mockStories = [
     status: 'published',
     featured: true,
     views: 2450,
-    audioFile: 'story_5.mp3'
+    audioFile: 'story_5.mp3',
   },
   {
     id: '6',
@@ -99,98 +98,103 @@ const mockStories = [
     status: 'published',
     featured: false,
     views: 1872,
-    audioFile: 'story_6.mp3'
-  }
+    audioFile: 'story_6.mp3',
+  },
 ];
 
 // Categories with Indian context
 const categories = [
-  'Technology', 'Entrepreneurship', 'Sustainability', 
+  'Technology', 'Entrepreneurship', 'Sustainability',
   'Healthcare', 'Education', 'Lifestyle', 'Indian Startups',
-  'Digital India', 'Innovation', 'Rural Development'
+  'Digital India', 'Innovation', 'Rural Development',
 ];
 
 const StorytellingManagement = () => {
   const [stories, setStories] = useState(mockStories);
   const [searchTerm, setSearchTerm] = useState('');
-  const [categoryFilter, setCategoryFilter] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('all'); // Default to "all"
+  const [statusFilter, setStatusFilter] = useState('all'); // Default to "all"
   const [editingStory, setEditingStory] = useState<any>(null);
   const { toast } = useToast();
   const [isPlaying, setIsPlaying] = useState<string | null>(null);
 
   // Filter stories based on search term and filters
-  const filteredStories = stories.filter(story => {
-    const matchesSearch = 
+  const filteredStories = stories.filter((story) => {
+    const matchesSearch =
       story.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       story.author.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesCategory = categoryFilter ? story.category === categoryFilter : true;
-    const matchesStatus = statusFilter ? story.status === statusFilter : true;
-    
+
+    // Handle "all" for category filter
+    const matchesCategory =
+      categoryFilter === 'all' ? true : story.category === categoryFilter;
+
+    // Handle "all" for status filter
+    const matchesStatus =
+      statusFilter === 'all' ? true : story.status === statusFilter;
+
     return matchesSearch && matchesCategory && matchesStatus;
   });
 
   const handleUpdateStory = () => {
     if (!editingStory) return;
 
-    setStories(stories.map(story => 
-      story.id === editingStory.id ? editingStory : story
+    setStories(stories.map((story) =>
+      story.id === editingStory.id ? editingStory : story,
     ));
-    
+
     setEditingStory(null);
-    
+
     toast({
-      title: "Story updated",
-      description: "The story has been updated successfully"
+      title: 'Story updated',
+      description: 'The story has been updated successfully',
     });
   };
 
   const handleDeleteStory = (id: string) => {
-    setStories(stories.filter(story => story.id !== id));
-    
+    setStories(stories.filter((story) => story.id !== id));
+
     toast({
-      title: "Story deleted",
-      description: "The story has been deleted successfully"
+      title: 'Story deleted',
+      description: 'The story has been deleted successfully',
     });
   };
 
   const handleApproveStory = (id: string) => {
-    setStories(stories.map(story => 
-      story.id === id ? { ...story, status: 'published' } : story
+    setStories(stories.map((story) =>
+      story.id === id ? { ...story, status: 'published' } : story,
     ));
-    
+
     toast({
-      title: "Story approved",
-      description: "The story has been approved and published"
+      title: 'Story approved',
+      description: 'The story has been approved and published',
     });
   };
 
   const handleRejectStory = (id: string) => {
-    setStories(stories.map(story => 
-      story.id === id ? { ...story, status: 'rejected' } : story
+    setStories(stories.map((story) =>
+      story.id === id ? { ...story, status: 'rejected' } : story,
     ));
-    
+
     toast({
-      title: "Story rejected",
-      description: "The story has been rejected"
+      title: 'Story rejected',
+      description: 'The story has been rejected',
     });
   };
 
   const handleToggleFeatured = (id: string) => {
-    setStories(stories.map(story => {
+    setStories(stories.map((story) => {
       if (story.id === id) {
         return { ...story, featured: !story.featured };
       }
       return story;
     }));
-    
-    const story = stories.find(s => s.id === id);
+
+    const story = stories.find((s) => s.id === id);
     toast({
-      title: story?.featured ? "Removed from featured" : "Added to featured",
-      description: story?.featured 
-        ? "The story has been removed from featured stories" 
-        : "The story has been added to featured stories"
+      title: story?.featured ? 'Removed from featured' : 'Added to featured',
+      description: story?.featured
+        ? 'The story has been removed from featured stories'
+        : 'The story has been added to featured stories',
     });
   };
 
@@ -212,58 +216,54 @@ const StorytellingManagement = () => {
           Add New Story
         </Button>
       </div>
-      
+
       <div className="flex items-center space-x-2">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input 
-            placeholder="Search stories..." 
+          <Input
+            placeholder="Search stories..."
             className="pl-10"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-        <Select
-          value={categoryFilter}
-          onValueChange={setCategoryFilter}
-        >
+        <Select value={categoryFilter} onValueChange={setCategoryFilter}>
           <SelectTrigger className="w-40">
             <SelectValue placeholder="All Categories" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">All Categories</SelectItem>
-            {categories.map(category => (
-              <SelectItem key={category} value={category}>{category}</SelectItem>
+            <SelectItem value="all">All Categories</SelectItem>
+            {categories.map((category) => (
+              <SelectItem key={category} value={category}>
+                {category}
+              </SelectItem>
             ))}
           </SelectContent>
         </Select>
-        <Select
-          value={statusFilter}
-          onValueChange={setStatusFilter}
-        >
+        <Select value={statusFilter} onValueChange={setStatusFilter}>
           <SelectTrigger className="w-40">
             <SelectValue placeholder="All Statuses" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">All Statuses</SelectItem>
+            <SelectItem value="all">All Statuses</SelectItem>
             <SelectItem value="published">Published</SelectItem>
             <SelectItem value="pending">Pending</SelectItem>
             <SelectItem value="rejected">Rejected</SelectItem>
           </SelectContent>
         </Select>
-        <Button 
-          variant="outline" 
+        <Button
+          variant="outline"
           onClick={() => {
             setSearchTerm('');
-            setCategoryFilter('');
-            setStatusFilter('');
+            setCategoryFilter('all');
+            setStatusFilter('all');
           }}
         >
           <RefreshCw className="h-4 w-4 mr-2" />
           Reset
         </Button>
       </div>
-      
+
       <div className="rounded-md border">
         <Table>
           <TableHeader>
@@ -327,10 +327,10 @@ const StorytellingManagement = () => {
                   <TableCell>{story.duration}</TableCell>
                   <TableCell>{story.views.toLocaleString()}</TableCell>
                   <TableCell>
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      title={isPlaying === story.id ? "Pause" : "Play Preview"}
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      title={isPlaying === story.id ? 'Pause' : 'Play Preview'}
                       onClick={() => toggleAudioPreview(story.id)}
                     >
                       <Music className={`h-4 w-4 ${isPlaying === story.id ? 'text-primary' : ''}`} />
@@ -358,24 +358,20 @@ const StorytellingManagement = () => {
                           </Button>
                         </>
                       )}
-                      
+
                       <Button
                         variant="ghost"
                         size="icon"
-                        title={story.featured ? "Remove from Featured" : "Add to Featured"}
+                        title={story.featured ? 'Remove from Featured' : 'Add to Featured'}
                         onClick={() => handleToggleFeatured(story.id)}
                       >
-                        <Star className={`h-4 w-4 ${story.featured ? "text-amber-500 fill-amber-500" : ""}`} />
+                        <Star className={`h-4 w-4 ${story.featured ? 'text-amber-500 fill-amber-500' : ''}`} />
                       </Button>
-                      
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        title="View Story"
-                      >
+
+                      <Button variant="ghost" size="icon" title="View Story">
                         <Eye className="h-4 w-4" />
                       </Button>
-                      
+
                       <Dialog>
                         <DialogTrigger asChild>
                           <Button
@@ -394,51 +390,61 @@ const StorytellingManagement = () => {
                               Make changes to the storytelling content.
                             </DialogDescription>
                           </DialogHeader>
-                          
+
                           {editingStory && (
                             <div className="grid grid-cols-1 gap-6 py-4">
                               <div className="space-y-2">
                                 <Label htmlFor="edit-story-title">Title</Label>
-                                <Input 
-                                  id="edit-story-title" 
+                                <Input
+                                  id="edit-story-title"
                                   value={editingStory.title}
-                                  onChange={(e) => setEditingStory({...editingStory, title: e.target.value})}
+                                  onChange={(e) =>
+                                    setEditingStory({ ...editingStory, title: e.target.value })
+                                  }
                                 />
                               </div>
-                              
+
                               <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-2">
                                   <Label htmlFor="edit-story-author">Author</Label>
-                                  <Input 
-                                    id="edit-story-author" 
+                                  <Input
+                                    id="edit-story-author"
                                     value={editingStory.author}
-                                    onChange={(e) => setEditingStory({...editingStory, author: e.target.value})}
+                                    onChange={(e) =>
+                                      setEditingStory({ ...editingStory, author: e.target.value })
+                                    }
                                   />
                                 </div>
                                 <div className="space-y-2">
                                   <Label htmlFor="edit-story-category">Category</Label>
                                   <Select
                                     value={editingStory.category}
-                                    onValueChange={(value) => setEditingStory({...editingStory, category: value})}
+                                    onValueChange={(value) =>
+                                      setEditingStory({ ...editingStory, category: value })
+                                    }
                                   >
                                     <SelectTrigger id="edit-story-category">
                                       <SelectValue placeholder="Select category" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                      {categories.map(category => (
-                                        <SelectItem key={category} value={category}>{category}</SelectItem>
+                                      {categories.map((category) => (
+                                        <SelectItem key={category} value={category}>
+                                          {category}
+                                        </SelectItem>
                                       ))}
                                     </SelectContent>
                                   </Select>
                                 </div>
                               </div>
-                              
+
                               <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-2">
                                   <Label htmlFor="edit-story-status">Status</Label>
                                   <Select
                                     value={editingStory.status}
-                                    onValueChange={(value) => setEditingStory({...editingStory, status: value})}
+                                    onValueChange={(value) =>
+                                      setEditingStory({ ...editingStory, status: value })
+                                    }
                                   >
                                     <SelectTrigger id="edit-story-status">
                                       <SelectValue placeholder="Select status" />
@@ -453,11 +459,11 @@ const StorytellingManagement = () => {
                                 <div className="space-y-2">
                                   <Label htmlFor="edit-story-featured">Featured Story</Label>
                                   <div className="flex items-center h-10 space-x-2">
-                                    <Checkbox 
-                                      id="edit-story-featured" 
+                                    <Checkbox
+                                      id="edit-story-featured"
                                       checked={editingStory.featured}
-                                      onCheckedChange={(checked) => 
-                                        setEditingStory({...editingStory, featured: !!checked})
+                                      onCheckedChange={(checked) =>
+                                        setEditingStory({ ...editingStory, featured: !!checked })
                                       }
                                     />
                                     <label
@@ -469,15 +475,15 @@ const StorytellingManagement = () => {
                                   </div>
                                 </div>
                               </div>
-                              
+
                               <div className="space-y-2">
                                 <Label>Media Content</Label>
                                 <div className="border rounded-md p-4 bg-muted/30">
                                   <p className="text-sm text-muted-foreground mb-2">
                                     Current audio file: {editingStory.audioFile}
                                   </p>
-                                  <audio 
-                                    controls 
+                                  <audio
+                                    controls
                                     src={`/audio/${editingStory.audioFile}`}
                                     className="w-full mb-3"
                                   />
@@ -486,36 +492,30 @@ const StorytellingManagement = () => {
                                   </Button>
                                 </div>
                               </div>
-                              
+
                               <div className="space-y-2">
                                 <Label htmlFor="edit-story-description">Description</Label>
-                                <Textarea 
-                                  id="edit-story-description" 
+                                <Textarea
+                                  id="edit-story-description"
                                   placeholder="Story description or transcript"
                                   className="h-32"
                                 />
                               </div>
                             </div>
                           )}
-                          
+
                           <DialogFooter>
                             <Button variant="outline" onClick={() => setEditingStory(null)}>
                               Cancel
                             </Button>
-                            <Button onClick={handleUpdateStory}>
-                              Save Changes
-                            </Button>
+                            <Button onClick={handleUpdateStory}>Save Changes</Button>
                           </DialogFooter>
                         </DialogContent>
                       </Dialog>
-                      
+
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
-                          <Button 
-                            variant="ghost" 
-                            size="icon"
-                            title="Delete Story"
-                          >
+                          <Button variant="ghost" size="icon" title="Delete Story">
                             <Trash2 className="h-4 w-4 text-destructive" />
                           </Button>
                         </AlertDialogTrigger>
@@ -523,12 +523,16 @@ const StorytellingManagement = () => {
                           <AlertDialogHeader>
                             <AlertDialogTitle>Delete Story</AlertDialogTitle>
                             <AlertDialogDescription>
-                              Are you sure you want to delete this story? This action cannot be undone.
+                              Are you sure you want to delete this story? This action cannot be
+                              undone.
                             </AlertDialogDescription>
                           </AlertDialogHeader>
                           <AlertDialogFooter>
                             <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction onClick={() => handleDeleteStory(story.id)} className="bg-destructive text-destructive-foreground">
+                            <AlertDialogAction
+                              onClick={() => handleDeleteStory(story.id)}
+                              className="bg-destructive text-destructive-foreground"
+                            >
                               Delete
                             </AlertDialogAction>
                           </AlertDialogFooter>
@@ -543,13 +547,13 @@ const StorytellingManagement = () => {
                 <TableCell colSpan={9} className="text-center py-8">
                   <div className="flex flex-col items-center justify-center text-muted-foreground">
                     <p>No stories found</p>
-                    {(searchTerm || categoryFilter || statusFilter) && (
-                      <Button 
-                        variant="link" 
+                    {(searchTerm || categoryFilter !== 'all' || statusFilter !== 'all') && (
+                      <Button
+                        variant="link"
                         onClick={() => {
                           setSearchTerm('');
-                          setCategoryFilter('');
-                          setStatusFilter('');
+                          setCategoryFilter('all');
+                          setStatusFilter('all');
                         }}
                       >
                         Clear filters
