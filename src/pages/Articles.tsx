@@ -109,27 +109,56 @@ const Articles = () => {
 
   const onSubmit = async (data: ArticleSubmissionValues) => {
     setIsSubmitting(true);
-    
+
     try {
-      // Simulate API call with timeout
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      console.log('Article submission:', data);
-      
+      // Prepare the payload for the API
+      const payload = {
+        title: data.title,
+        content: `<p>${data.content}</p>`, // Wrap content in <p> tags
+        imageUrl: "", // You can add logic to handle image uploads
+        author: {
+          name: data.name,
+          avatar: "", // You can add logic to handle author avatars
+          role: "Guest Author", // Default role for submissions
+        },
+        category: "Tech", // Default category, or allow users to select one
+        readTime: "5 min", // Calculate or use a default value
+        date: new Date().toISOString().split("T")[0], // Current date in YYYY-MM-DD format
+        tags: [], // You can allow users to add tags
+      };
+
+      // Call the API
+      const response = await fetch("http://localhost:5000/api/articles", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to submit article");
+      }
+
+      const result = await response.json();
+
+      // Show success toast
       toast({
-        title: 'Article submitted successfully',
-        description: 'Your article has been sent for review. We will get back to you soon.',
+        title: "Article submitted successfully",
+        description: "Your article has been sent for review. We will get back to you soon.",
         duration: 5000,
       });
-      
+
+      // Reset the form
       reset();
     } catch (error) {
-      console.error('Error submitting article:', error);
-      
+      console.error("Error submitting article:", error);
+
+      // Show error toast
       toast({
-        title: 'Something went wrong',
-        description: 'Failed to submit your article. Please try again.',
-        variant: 'destructive',
+        title: "Something went wrong",
+        description: "Failed to submit your article. Please try again.",
+        variant: "destructive",
         duration: 5000,
       });
     } finally {
