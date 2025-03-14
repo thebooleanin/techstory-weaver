@@ -67,7 +67,7 @@ const socialPosts: SocialPost[] = [
       handle: 'techinsider',
       avatar: 'https://randomuser.me/api/portraits/men/67.jpg'
     },
-    caption: 'Just got my hands on the latest smartphone with AI capabilities. The future is here, and it's both exciting and a little scary! Thread 🧵 #TechNews #AI #NewGadgets',
+    caption: "Just got my hands on the latest smartphone with AI capabilities. The future is here, and it's both exciting and a little scary! Thread 🧵 #TechNews #AI #NewGadgets",
     likes: 952,
     comments: 87,
     date: '3 days ago'
@@ -96,7 +96,7 @@ const socialPosts: SocialPost[] = [
       handle: 'evdaily',
       avatar: 'https://randomuser.me/api/portraits/men/52.jpg'
     },
-    caption: 'We took the new hydrogen fuel cell vehicle for a test drive and here's our honest review. Range, refueling, and driving experience - we cover it all! #HydrogenCars #FuelCell #GreenTransport',
+    caption: "We took the new hydrogen fuel cell vehicle for a test drive and here's our honest review. Range, refueling, and driving experience - we cover it all! #HydrogenCars #FuelCell #GreenTransport",
     likes: 1823,
     comments: 142,
     date: '2 weeks ago'
@@ -110,7 +110,7 @@ const socialPosts: SocialPost[] = [
       handle: 'cyclecommunity',
       avatar: 'https://randomuser.me/api/portraits/women/62.jpg'
     },
-    caption: 'E-bikes have revolutionized my commute! 10 miles each way used to feel impossible, now it's the highlight of my day. Anyone else switched to an e-bike for commuting? #EBikes #BikeCommuting #SustainableTransport',
+    caption: "E-bikes have revolutionized my commute! 10 miles each way used to feel impossible, now it's the highlight of my day. Anyone else switched to an e-bike for commuting? #EBikes #BikeCommuting #SustainableTransport",
     likes: 765,
     comments: 43,
     date: '1 day ago'
