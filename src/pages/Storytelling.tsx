@@ -1,5 +1,4 @@
-
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -12,9 +11,10 @@ import { Textarea } from '@/components/ui/textarea';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowRight, Play, Pause, SkipBack, SkipForward, Volume2, VolumeX, Headphones, FileAudio, Upload } from 'lucide-react';
+import { ArrowRight, Play, Pause, SkipBack, SkipForward, Volume2, VolumeX, Headphones, FileAudio, Upload, Radio } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import AudioPlayer from '@/components/storytelling/AudioPlayer';
 
 // Form schema for the storyteller request
 const formSchema = z.object({
@@ -43,7 +43,7 @@ const stories = [
     category: "Entrepreneurship",
     date: "June 15, 2023",
     description: "Sarah shares her story of perseverance through the challenges of her first failed startup and how it led to her current success.",
-    audioSrc: "#",
+    audioSrc: "https://cdn.plyr.io/static/demo/Kishi_Bashi_-_It_All_Began_With_a_Burst.mp3",
     image: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1674&q=80"
   },
   {
@@ -54,7 +54,7 @@ const stories = [
     category: "Career Growth",
     date: "May 20, 2023",
     description: "David's journey from coding in his garage to securing a position at one of the world's leading tech companies.",
-    audioSrc: "#",
+    audioSrc: "https://cdn.plyr.io/static/demo/Kishi_Bashi_-_It_All_Began_With_a_Burst.mp3",
     image: "https://images.unsplash.com/photo-1515378791036-0648a3ef77b2?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1170&q=80"
   },
   {
@@ -65,7 +65,7 @@ const stories = [
     category: "Tech Ethics",
     date: "June 5, 2023",
     description: "Maya discusses the moral challenges she faced while working on an AI project and how she navigated these complex waters.",
-    audioSrc: "#",
+    audioSrc: "https://cdn.plyr.io/static/demo/Kishi_Bashi_-_It_All_Began_With_a_Burst.mp3",
     image: "https://images.unsplash.com/photo-1531746790731-6c087fecd65a?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1674&q=80"
   },
   {
@@ -76,7 +76,7 @@ const stories = [
     category: "Diversity in Tech",
     date: "July 1, 2023",
     description: "Lisa shares her experience as a woman in tech leadership and the challenges she overcame to reach her position.",
-    audioSrc: "#",
+    audioSrc: "https://cdn.plyr.io/static/demo/Kishi_Bashi_-_It_All_Began_With_a_Burst.mp3",
     image: "https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1170&q=80"
   },
   {
@@ -87,7 +87,7 @@ const stories = [
     category: "Open Source",
     date: "June 28, 2023",
     description: "Raj explains how he grew his open-source project from a personal tool to a community-supported platform with thousands of users.",
-    audioSrc: "#",
+    audioSrc: "https://cdn.plyr.io/static/demo/Kishi_Bashi_-_It_All_Began_With_a_Burst.mp3",
     image: "https://images.unsplash.com/photo-1528901166007-3784c7dd3653?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1170&q=80"
   },
   {
@@ -98,8 +98,32 @@ const stories = [
     category: "Wellbeing",
     date: "July 10, 2023",
     description: "Emma discusses the importance of setting boundaries and maintaining wellness while working in the fast-paced startup world.",
-    audioSrc: "#",
+    audioSrc: "https://cdn.plyr.io/static/demo/Kishi_Bashi_-_It_All_Began_With_a_Burst.mp3",
     image: "https://images.unsplash.com/photo-1499750310107-5fef28a66643?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1170&q=80"
+  }
+];
+
+// Live broadcast data
+const liveBroadcasts = [
+  {
+    id: 101,
+    title: "Tech Innovation Weekly",
+    author: "James Wilson",
+    isLive: true,
+    listeners: 245,
+    description: "Weekly discussion of the latest tech innovations and industry trends.",
+    audioSrc: "https://cdn.plyr.io/static/demo/Kishi_Bashi_-_It_All_Began_With_a_Burst.mp3",
+    image: "https://images.unsplash.com/photo-1519389950473-47ba0277781c?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1170&q=80"
+  },
+  {
+    id: 102,
+    title: "Startup Founders Chat",
+    author: "Rebecca Johnson & Taylor Smith",
+    isLive: true,
+    listeners: 187,
+    description: "Live interview with successful startup founders sharing their journeys and advice.",
+    audioSrc: "https://cdn.plyr.io/static/demo/Kishi_Bashi_-_It_All_Began_With_a_Burst.mp3",
+    image: "https://images.unsplash.com/photo-1577563908411-5077b6dc7624?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1170&q=80"
   }
 ];
 
@@ -109,13 +133,11 @@ const categories = [
 ];
 
 const Storytelling = () => {
-  const [selectedStory, setSelectedStory] = useState<typeof stories[0] | null>(null);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [volume, setVolume] = useState(80);
-  const [isMuted, setIsMuted] = useState(false);
-  const [currentTime, setCurrentTime] = useState(0);
+  const [selectedStory, setSelectedStory] = useState<(typeof stories)[0] | null>(null);
+  const [selectedLive, setSelectedLive] = useState<(typeof liveBroadcasts)[0] | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [activeCategory, setActiveCategory] = useState("All");
+  const [activeTab, setActiveTab] = useState("recorded");
 
   // Scroll to top on page load
   useEffect(() => {
@@ -152,22 +174,11 @@ const Storytelling = () => {
     ? stories 
     : stories.filter(story => story.category === activeCategory);
 
-  // Toggle play/pause
-  const togglePlayPause = () => {
-    setIsPlaying(!isPlaying);
-  };
-
-  // Toggle mute
-  const toggleMute = () => {
-    setIsMuted(!isMuted);
-  };
-
-  // Handle story selection
-  const handleStorySelect = (story: typeof stories[0]) => {
-    setSelectedStory(story);
-    setIsPlaying(true);
-    setCurrentTime(0);
-  };
+  // Clear selected story when tab changes
+  useEffect(() => {
+    setSelectedStory(null);
+    setSelectedLive(null);
+  }, [activeTab]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -196,149 +207,179 @@ const Storytelling = () => {
               Discover five-minute stories from entrepreneurs, innovators, and creators in the tech world. 
               These bite-sized audio experiences offer valuable insights into the journey of turning ideas into reality.
             </p>
-            <div className="flex flex-wrap gap-3">
-              {categories.map((category) => (
-                <button
-                  key={category}
-                  onClick={() => setActiveCategory(category)}
-                  className={`px-4 py-2 rounded-full text-sm font-medium ${
-                    activeCategory === category
-                      ? 'bg-primary text-white'
-                      : 'bg-muted hover:bg-muted/80'
-                  }`}
-                >
-                  {category}
-                </button>
-              ))}
-            </div>
+            
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
+              <TabsList className="inline-flex mb-4">
+                <TabsTrigger value="recorded" className="flex items-center gap-1.5">
+                  <Headphones className="h-4 w-4" />
+                  Recorded Stories
+                </TabsTrigger>
+                <TabsTrigger value="live" className="flex items-center gap-1.5">
+                  <Radio className="h-4 w-4" />
+                  Live Broadcasts
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
+            
+            {activeTab === "recorded" && (
+              <div className="flex flex-wrap gap-3">
+                {categories.map((category) => (
+                  <button
+                    key={category}
+                    onClick={() => setActiveCategory(category)}
+                    className={`px-4 py-2 rounded-full text-sm font-medium ${
+                      activeCategory === category
+                        ? 'bg-primary text-white'
+                        : 'bg-muted hover:bg-muted/80'
+                    }`}
+                  >
+                    {category}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </section>
       
-      {/* Stories Section */}
+      {/* Audio Player Section (always visible when something is playing) */}
+      {(selectedStory || selectedLive) && (
+        <div className="sticky top-16 z-30 bg-background shadow-md border-b border-border/10">
+          <div className="container py-4">
+            <AudioPlayer 
+              audioSrc={selectedStory?.audioSrc || selectedLive?.audioSrc || ''}
+              imageUrl={selectedStory?.image || selectedLive?.image}
+              title={selectedStory?.title || selectedLive?.title || ''}
+              author={selectedStory?.author || selectedLive?.author || ''}
+              isLive={!!selectedLive?.isLive}
+              onEnded={() => {
+                if (selectedStory) setSelectedStory(null);
+                if (selectedLive) setSelectedLive(null);
+              }}
+            />
+          </div>
+        </div>
+      )}
+      
+      {/* Stories/Live Broadcasts Section */}
       <section className="py-20">
         <div className="container">
-          {/* Audio Player (shows when a story is selected) */}
-          {selectedStory && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-              className="bg-white dark:bg-black/10 rounded-lg shadow-sm p-6 mb-12"
-            >
-              <div className="flex flex-col md:flex-row gap-6 items-center">
-                <div className="w-full md:w-1/4">
-                  <div className="aspect-square rounded-lg overflow-hidden">
-                    <img 
-                      src={selectedStory.image} 
-                      alt={selectedStory.title} 
-                      className="w-full h-full object-cover" 
-                    />
-                  </div>
-                </div>
-                
-                <div className="flex-1">
-                  <div className="mb-4">
-                    <span className="text-xs text-primary font-semibold uppercase">{selectedStory.category}</span>
-                    <h3 className="text-xl font-bold mt-1">{selectedStory.title}</h3>
-                    <p className="text-sm text-muted-foreground">By {selectedStory.author} • {selectedStory.date}</p>
-                  </div>
-                  
-                  <p className="text-muted-foreground text-sm mb-4">
-                    {selectedStory.description}
-                  </p>
-                  
-                  <div className="space-y-3">
-                    {/* Progress bar */}
-                    <div className="relative h-2 bg-muted rounded-full overflow-hidden">
-                      <div 
-                        className="absolute left-0 top-0 h-full bg-primary" 
-                        style={{ width: `${(currentTime / 312) * 100}%` }}
-                      ></div>
-                    </div>
-                    
-                    <div className="flex justify-between text-xs text-muted-foreground">
-                      <span>{Math.floor(currentTime / 60)}:{(currentTime % 60).toString().padStart(2, '0')}</span>
-                      <span>{selectedStory.duration}</span>
-                    </div>
-                    
-                    {/* Controls */}
-                    <div className="flex items-center justify-center gap-4">
-                      <button className="text-muted-foreground hover:text-foreground">
-                        <SkipBack size={18} />
-                      </button>
-                      
-                      <button 
-                        className="w-12 h-12 rounded-full bg-primary text-white flex items-center justify-center hover:bg-primary/90"
-                        onClick={togglePlayPause}
-                      >
-                        {isPlaying ? <Pause size={20} /> : <Play size={20} className="ml-1" />}
-                      </button>
-                      
-                      <button className="text-muted-foreground hover:text-foreground">
-                        <SkipForward size={18} />
-                      </button>
-                    </div>
-                    
-                    {/* Volume control */}
-                    <div className="flex items-center gap-2">
-                      <button onClick={toggleMute} className="text-muted-foreground hover:text-foreground">
-                        {isMuted ? <VolumeX size={18} /> : <Volume2 size={18} />}
-                      </button>
-                      
-                      <div className="relative h-1 flex-1 bg-muted rounded-full overflow-hidden">
-                        <div 
-                          className="absolute left-0 top-0 h-full bg-primary" 
-                          style={{ width: `${isMuted ? 0 : volume}%` }}
-                        ></div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+          {activeTab === "live" ? (
+            <>
+              <div className="flex items-center justify-between mb-8">
+                <h2 className="text-2xl font-bold">Live Now</h2>
+                <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800 dark:bg-red-800/20 dark:text-red-400">
+                  <span className="w-2 h-2 bg-red-500 rounded-full mr-2 animate-pulse"></span>
+                  {liveBroadcasts.length} Live Broadcasts
+                </span>
               </div>
-            </motion.div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {liveBroadcasts.map((broadcast, index) => (
+                  <motion.div
+                    key={broadcast.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4, delay: index * 0.1 }}
+                  >
+                    <Card className="overflow-hidden h-full flex flex-col hover:shadow-md transition-shadow">
+                      <div className="aspect-video relative overflow-hidden">
+                        <img 
+                          src={broadcast.image} 
+                          alt={broadcast.title} 
+                          className="w-full h-full object-cover" 
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex flex-col justify-end p-4">
+                          <div className="flex items-center gap-2 mb-2">
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-500 text-white">
+                              <span className="w-1.5 h-1.5 bg-white rounded-full mr-1 animate-pulse"></span>
+                              LIVE
+                            </span>
+                            <span className="text-xs text-white/90 flex items-center">
+                              {broadcast.listeners} listening
+                            </span>
+                          </div>
+                          <h3 className="text-xl text-white font-bold">{broadcast.title}</h3>
+                          <p className="text-sm text-white/80">By {broadcast.author}</p>
+                        </div>
+                      </div>
+                      
+                      <CardContent className="flex-1 pt-4">
+                        <p className="text-sm text-muted-foreground mb-4">
+                          {broadcast.description}
+                        </p>
+                        <Button 
+                          variant={selectedLive?.id === broadcast.id ? "secondary" : "default"}
+                          className="w-full"
+                          onClick={() => setSelectedLive(broadcast)}
+                        >
+                          {selectedLive?.id === broadcast.id ? "Currently Playing" : "Join Broadcast"}
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                ))}
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="mb-8">
+                <h2 className="text-2xl font-bold mb-4">Featured Stories</h2>
+                <p className="text-muted-foreground">Browse our collection of {filteredStories.length} inspiring tech stories</p>
+              </div>
+              
+              {/* Stories Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {filteredStories.map((story, index) => (
+                  <motion.div
+                    key={story.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4, delay: index * 0.1 }}
+                  >
+                    <Card className="cursor-pointer hover:shadow-md transition-shadow overflow-hidden h-full flex flex-col">
+                      <div className="aspect-[16/9] overflow-hidden relative">
+                        <img 
+                          src={story.image} 
+                          alt={story.title} 
+                          className="w-full h-full object-cover transition-transform duration-300 hover:scale-105" 
+                        />
+                        <Button 
+                          variant="default"
+                          size="icon"
+                          className="absolute bottom-3 right-3 rounded-full h-10 w-10 shadow-md"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedStory(story);
+                          }}
+                        >
+                          <Play className="h-5 w-5 ml-0.5" />
+                        </Button>
+                      </div>
+                      <CardHeader className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="inline-block px-3 py-0.5 bg-primary/10 text-primary text-xs font-medium rounded-full">
+                            {story.category}
+                          </span>
+                          <span className="text-xs text-muted-foreground flex items-center">
+                            <Headphones size={12} className="mr-1" />
+                            {story.duration}
+                          </span>
+                        </div>
+                        <CardTitle className="text-lg">{story.title}</CardTitle>
+                        <CardDescription className="line-clamp-2">
+                          {story.description}
+                        </CardDescription>
+                      </CardHeader>
+                      <CardFooter className="pt-0 pb-4 text-sm text-muted-foreground">
+                        By {story.author} • {story.date}
+                      </CardFooter>
+                    </Card>
+                  </motion.div>
+                ))}
+              </div>
+            </>
           )}
-          
-          {/* Stories Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filteredStories.map((story, index) => (
-              <motion.div
-                key={story.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, delay: index * 0.1 }}
-              >
-                <Card className="cursor-pointer hover:shadow-md transition-shadow overflow-hidden h-full flex flex-col"
-                      onClick={() => handleStorySelect(story)}>
-                  <div className="aspect-[16/9] overflow-hidden">
-                    <img 
-                      src={story.image} 
-                      alt={story.title} 
-                      className="w-full h-full object-cover transition-transform duration-300 hover:scale-105" 
-                    />
-                  </div>
-                  <CardHeader className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className="inline-block px-3 py-0.5 bg-primary/10 text-primary text-xs font-medium rounded-full">
-                        {story.category}
-                      </span>
-                      <span className="text-xs text-muted-foreground flex items-center">
-                        <Headphones size={12} className="mr-1" />
-                        {story.duration}
-                      </span>
-                    </div>
-                    <CardTitle className="text-lg">{story.title}</CardTitle>
-                    <CardDescription className="line-clamp-2">
-                      {story.description}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardFooter className="pt-0 pb-4 text-sm text-muted-foreground">
-                    By {story.author} • {story.date}
-                  </CardFooter>
-                </Card>
-              </motion.div>
-            ))}
-          </div>
         </div>
       </section>
       

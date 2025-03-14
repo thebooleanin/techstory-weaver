@@ -9,6 +9,7 @@ import BlogManagement from '@/components/admin/BlogManagement';
 import AdManagement from '@/components/admin/AdManagement';
 import StorytellingManagement from '@/components/admin/StorytellingManagement';
 import FormManagement from '@/components/admin/FormManagement';
+import SiteConfigManagement from '@/components/admin/SiteConfigManagement';
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -58,11 +59,12 @@ const AdminDashboard = () => {
 
       <main className="container py-6">
         <Tabs defaultValue="blog" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="blog">Blog Management</TabsTrigger>
             <TabsTrigger value="ads">Ad Management</TabsTrigger>
             <TabsTrigger value="storytelling">Storytelling</TabsTrigger>
             <TabsTrigger value="forms">Form Submissions</TabsTrigger>
+            <TabsTrigger value="siteconfig">Site Configuration</TabsTrigger>
           </TabsList>
           
           <TabsContent value="blog" className="space-y-4">
@@ -79,6 +81,10 @@ const AdminDashboard = () => {
           
           <TabsContent value="forms" className="space-y-4">
             <FormManagement />
+          </TabsContent>
+          
+          <TabsContent value="siteconfig" className="space-y-4">
+            <SiteConfigManagement />
           </TabsContent>
         </Tabs>
       </main>

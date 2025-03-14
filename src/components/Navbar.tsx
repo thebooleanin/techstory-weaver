@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -21,6 +21,7 @@ const Navbar = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const isMobile = useIsMobile();
   const location = useLocation();
+  const mobileMenuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -40,6 +41,31 @@ const Navbar = () => {
     setMobileMenuOpen(false);
   }, [location.pathname]);
 
+  // Close mobile menu when clicking outside
+  useEffect(() => {
+    if (!isMobile) return;
+
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        mobileMenuOpen &&
+        mobileMenuRef.current &&
+        !mobileMenuRef.current.contains(event.target as Node)
+      ) {
+        setMobileMenuOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [mobileMenuOpen, isMobile]);
+
+  // Handle mobile menu button click - toggle menu visibility
+  const toggleMobileMenu = () => {
+    setMobileMenuOpen(prevState => !prevState);
+  };
+
   return (
     <nav
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
@@ -50,7 +76,7 @@ const Navbar = () => {
     >
       <div className="container flex justify-between items-center">
         {/* Logo */}
-        <Link to="/" className="text-2xl font-bold">
+        <Link to="/" className="text-2xl font-bold relative z-50">
           TheBoolean
         </Link>
 
@@ -81,8 +107,9 @@ const Navbar = () => {
         {/* Mobile Menu Button */}
         {isMobile && (
           <button
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="text-foreground"
+            onClick={toggleMobileMenu}
+            className="text-foreground relative z-50"
+            aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
           >
             {mobileMenuOpen ? (
               <X className="h-6 w-6" />
@@ -93,39 +120,65 @@ const Navbar = () => {
         )}
       </div>
 
+      {/* Mobile Menu Overlay */}
+      {isMobile && (
+        <AnimatePresence>
+          {mobileMenuOpen && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="fixed inset-0 bg-background/80 backdrop-blur-sm z-40"
+              aria-hidden="true"
+            />
+          )}
+        </AnimatePresence>
+      )}
+
       {/* Mobile Menu */}
-      <AnimatePresence>
-        {isMobile && mobileMenuOpen && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.3 }}
-            className="container overflow-hidden"
-          >
-            <div className="flex flex-col gap-4 py-4">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.name}
-                  to={link.href}
-                  className={`text-sm font-medium py-2 ${
-                    location.pathname === link.href
-                      ? "text-primary"
-                      : "text-foreground/80"
-                  }`}
-                >
-                  {link.name}
-                </Link>
-              ))}
-              <Link to="/register" className="mt-2">
-                <Button variant="default" size="sm" className="w-full">
-                  Register
-                </Button>
-              </Link>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {isMobile && (
+        <AnimatePresence>
+          {mobileMenuOpen && (
+            <motion.div
+              ref={mobileMenuRef}
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.3 }}
+              className="absolute top-20 left-0 right-0 bg-background border-t border-b border-border/30 shadow-lg z-40"
+            >
+              <div className="container flex flex-col gap-4 py-6">
+                {navLinks.map((link) => (
+                  <Link
+                    key={link.name}
+                    to={link.href}
+                    className={`text-base font-medium py-2 px-2 rounded-md ${
+                      location.pathname === link.href
+                        ? "text-primary bg-primary/5"
+                        : "text-foreground/80 hover:bg-muted"
+                    }`}
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    {link.name}
+                  </Link>
+                ))}
+                <div className="pt-2 mt-2 border-t border-border/30">
+                  <Link 
+                    to="/register" 
+                    className="w-full block"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <Button variant="default" size="default" className="w-full">
+                      Register
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      )}
     </nav>
   );
 };
