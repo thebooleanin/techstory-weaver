@@ -1,69 +1,28 @@
-# Welcome to your Lovable project
+# The Boolean
 
-## Project info
+The Boolean is a brand and a community that is all about the truth. We are a collective of people who believe that the truth is the most important thing in the world. We are not afraid to speak the truth, even if it is hard to hear. We are not afraid to take a stand and fight for what we believe in.
 
-**URL**: https://lovable.dev/projects/e5ce4d6f-967a-4047-8c91-02a4414f880c
+The Boolean is not just a brand, it is a movement. We are a movement that is dedicated to spreading the truth and fighting against misinformation. We are a movement that is dedicated to empowering people to make informed decisions.
 
-## How can I edit this code?
+The Boolean is not just a community, it is a family. We are a family that is dedicated to supporting each other and fighting for the truth. We are a family that is dedicated to making the world a better place.
 
-There are several ways of editing your application.
+## Our Values
 
-**Use Lovable**
+* Truth: We believe that the truth is the most important thing in the world.
+* Courage: We believe that it takes courage to speak the truth and to take a stand for what we believe in.
+* Empowerment: We believe that people should be empowered to make informed decisions.
+* Community: We believe that we are stronger together and that we should support each other in our fight for the truth.
+* Family: We believe that we are a family and that we should treat each other with love and respect.
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/e5ce4d6f-967a-4047-8c91-02a4414f880c) and start prompting.
+## How Can You Join The Movement?
 
-Changes made via Lovable will be committed automatically to this repo.
+Joining The Boolean is easy. All you have to do is sign up for our newsletter and start spreading the truth. You can also join our community on Discord and start talking to other people who are passionate about the truth.
 
-**Use your preferred IDE**
+## How Can You Support Us?
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+There are many ways that you can support The Boolean. You can donate money to help us spread the truth. You can also help us spread the word by sharing our content on social media. You can also help us by volunteering your time and skills to help us grow.
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+## Conclusion
 
-Follow these steps:
+The Boolean is a brand and a community that is dedicated to spreading the truth and fighting against misinformation. We are a movement that is dedicated to empowering people to make informed decisions. We are a family that is dedicated to supporting each other and fighting for the truth. Join us and help us make the world a better place.
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
-
-**Edit a file directly in GitHub**
-
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
-
-**Use GitHub Codespaces**
-
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with .
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/e5ce4d6f-967a-4047-8c91-02a4414f880c) and click on Share -> Publish.
-
-## I want to use a custom domain - is that possible?
-
-We don't support custom domains (yet). If you want to deploy your project under your own domain then we recommend using Netlify. Visit our docs for more details: [Custom domains](https://docs.lovable.dev/tips-tricks/custom-domain/)
