@@ -60,7 +60,8 @@ const BlogManagement = () => {
   // Fetch blogs from the API
   const fetchBlogs = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/articles?page=1&limit=10');
+      const response = await fetch('http://localhost:5000/api/articles/admin?page=1&limit=10',{
+        method: 'POST',});
       const data = await response.json();
       setBlogs(data.data);
     } catch (error) {
