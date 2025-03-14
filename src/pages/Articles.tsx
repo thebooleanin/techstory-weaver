@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useForm } from 'react-hook-form';
@@ -13,6 +12,8 @@ import ArticleCard from '@/components/ArticleCard';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import { Link } from 'react-router-dom';
+
 import {
   Dialog,
   DialogContent,
@@ -29,91 +30,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-// Mock data for articles
-const allArticles = [
-  {
-    id: '1',
-    title: 'The Future of Electric Vehicles: Beyond Tesla',
-    excerpt: 'Exploring the next generation of EVs and the companies leading the charge in sustainable transportation.',
-    imageUrl: 'https://images.unsplash.com/photo-1593941707882-a56bbc8fbf7d?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1674&q=80',
-    category: 'Cars',
-    readTime: '6 min',
-    date: 'May 15, 2023'
-  },
-  {
-    id: '2',
-    title: 'Mountain Biking Revolution: Smart Bikes That Track Your Ride',
-    excerpt: 'How modern technology is transforming the mountain biking experience with real-time metrics and trail navigation.',
-    imageUrl: 'https://images.unsplash.com/photo-1606886993363-0d9f25400641?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1674&q=80',
-    category: 'Bikes',
-    readTime: '4 min',
-    date: 'June 2, 2023'
-  },
-  {
-    id: '3',
-    title: 'AI in Your Pocket: The New Generation of Smartphone Assistants',
-    excerpt: 'How the latest AI advancements are creating more helpful and intuitive smartphone assistants.',
-    imageUrl: 'https://images.unsplash.com/photo-1585236904508-d9f6292e583c?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1674&q=80',
-    category: 'Gadgets',
-    readTime: '5 min',
-    date: 'June 10, 2023'
-  },
-  {
-    id: '4',
-    title: 'The Evolution of Smart Home Technology in 2023',
-    excerpt: 'From voice assistants to interconnected ecosystems, explore how smart home technology has matured this year.',
-    imageUrl: 'https://images.unsplash.com/photo-1558002038-bb4237d2c793?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1674&q=80',
-    category: 'Technology',
-    readTime: '7 min',
-    date: 'July 8, 2023'
-  },
-  {
-    id: '5',
-    title: 'Hydrogen Fuel Cells: The Future of Automotive Propulsion?',
-    excerpt: 'A deep dive into hydrogen fuel cell technology and its potential to revolutionize the automotive industry.',
-    imageUrl: 'https://images.unsplash.com/photo-1620280922543-3a1fad75ebb5?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1674&q=80',
-    category: 'Cars',
-    readTime: '8 min',
-    date: 'July 22, 2023'
-  },
-  {
-    id: '6',
-    title: 'E-Bikes vs. Traditional Cycles: A Comprehensive Comparison',
-    excerpt: 'Analyzing the pros and cons of e-bikes against traditional bicycles for different types of riders and journeys.',
-    imageUrl: 'https://images.unsplash.com/photo-1571333250630-f0230c320b6d?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1674&q=80',
-    category: 'Bikes',
-    readTime: '6 min',
-    date: 'August 5, 2023'
-  },
-  {
-    id: '7',
-    title: 'The Rise of Foldable Devices: Innovation or Gimmick?',
-    excerpt: 'Examining the practical benefits and drawbacks of the latest generation of foldable smartphones and tablets.',
-    imageUrl: 'https://images.unsplash.com/photo-1598327105666-5b89351aff97?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1674&q=80',
-    category: 'Gadgets',
-    readTime: '5 min',
-    date: 'August 18, 2023'
-  },
-  {
-    id: '8',
-    title: 'Quantum Computing Explained: What It Means for the Future',
-    excerpt: 'Breaking down the complex principles of quantum computing and its potential impact on various industries.',
-    imageUrl: 'https://images.unsplash.com/photo-1544197150-b99a580bb7a8?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1674&q=80',
-    category: 'Technology',
-    readTime: '9 min',
-    date: 'September 3, 2023'
-  },
-  {
-    id: '9',
-    title: 'Sustainable Urban Transport: Beyond Electric Cars',
-    excerpt: 'How cities are reimagining urban mobility through innovative transportation solutions beyond just electric vehicles.',
-    imageUrl: 'https://images.unsplash.com/photo-1517649763962-0c623066013b?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1674&q=80',
-    category: 'Cars',
-    readTime: '7 min',
-    date: 'September 20, 2023'
-  }
-];
-
 // Zod schema for article submission form
 const articleSubmissionSchema = z.object({
   name: z.string().min(2, { message: 'Name must be at least 2 characters' }),
@@ -127,16 +43,17 @@ type ArticleSubmissionValues = z.infer<typeof articleSubmissionSchema>;
 const Articles = () => {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [articles, setArticles] = useState(allArticles);
+  const [articles, setArticles] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
   const [category, setCategory] = useState<string>('');
   const [sortBy, setSortBy] = useState<string>('');
   const [showFilters, setShowFilters] = useState(false);
-  
+  const [isLoading, setIsLoading] = useState(false);
+
   const itemsPerPage = 6;
-  const totalPages = Math.ceil(articles.length / itemsPerPage);
-  
+
   const {
     register,
     handleSubmit,
@@ -152,55 +69,33 @@ const Articles = () => {
     }
   });
 
+  // Fetch articles from the API
+  const fetchArticles = async (page = 1, limit = itemsPerPage) => {
+    setIsLoading(true);
+    try {
+      const response = await fetch(`http://localhost:5000/api/articles?page=${page}&limit=${limit}`);
+      const data = await response.json();
+      setArticles(data.data);
+      setTotalPages(data.pagination.totalPages);
+    } catch (error) {
+      console.error('Error fetching articles:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to fetch articles. Please try again later.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchArticles(currentPage);
+  }, [currentPage]);
+
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
-
-  useEffect(() => {
-    // Filter and sort articles
-    let filteredArticles = allArticles;
-
-    // Apply search filter
-    if (searchTerm) {
-      filteredArticles = filteredArticles.filter(article => 
-        article.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
-        article.excerpt.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
-
-    // Apply category filter
-    if (category) {
-      filteredArticles = filteredArticles.filter(article => 
-        article.category === category
-      );
-    }
-
-    // Apply sorting
-    if (sortBy) {
-      switch (sortBy) {
-        case 'latest':
-          filteredArticles = [...filteredArticles].sort((a, b) => 
-            new Date(b.date).getTime() - new Date(a.date).getTime()
-          );
-          break;
-        case 'oldest':
-          filteredArticles = [...filteredArticles].sort((a, b) => 
-            new Date(a.date).getTime() - new Date(b.date).getTime()
-          );
-          break;
-        case 'readTime':
-          filteredArticles = [...filteredArticles].sort((a, b) => 
-            parseInt(a.readTime) - parseInt(b.readTime)
-          );
-          break;
-        default:
-          break;
-      }
-    }
-
-    setArticles(filteredArticles);
-    setCurrentPage(1); // Reset to first page when filters change
-  }, [searchTerm, category, sortBy]);
 
   const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -210,12 +105,6 @@ const Articles = () => {
   const handlePageChange = (pageNumber: number) => {
     setCurrentPage(pageNumber);
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  const getCurrentPageItems = () => {
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    return articles.slice(startIndex, endIndex);
   };
 
   const onSubmit = async (data: ArticleSubmissionValues) => {
@@ -538,10 +427,14 @@ const Articles = () => {
           </div>
           
           {/* Articles Grid */}
-          {articles.length > 0 ? (
+          {isLoading ? (
+            <div className="flex justify-center items-center py-16">
+              <Loader2 className="h-8 w-8 animate-spin" />
+            </div>
+          ) : articles.length > 0 ? (
             <>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-10">
-                {getCurrentPageItems().map((article, index) => (
+                {articles.map((article, index) => (
                   <ArticleCard
                     key={article.id}
                     {...article}

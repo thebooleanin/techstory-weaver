@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -45,28 +44,44 @@ const AdminLogin = () => {
   // Form submission handler
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsSubmitting(true);
-    
-    // Simulate API call
-    setTimeout(() => {
-      setIsSubmitting(false);
-      
-      // For demo purposes, let's hard-code a valid admin credential
-      if (values.email === 'admin@theboolean.com' && values.password === 'admin123') {
-        toast.success("Login successful!", {
-          description: "Welcome back, admin!",
-        });
-        
-        // Store admin token in localStorage for authentication
-        localStorage.setItem('adminToken', 'demo-admin-token');
-        
-        // Navigate to admin dashboard after successful login
-        navigate('/admin-dashboard');
-      } else {
-        toast.error("Login failed", {
-          description: "Invalid email or password. Please try again.",
-        });
+
+    try {
+      // Make API request
+      const response = await fetch('http://localhost:5000/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: values.email,
+          password: values.password,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Login failed. Please try again.");
       }
-    }, 1500);
+
+      // Handle successful login
+      toast.success("Login successful!", {
+        description: "Welcome back, admin!",
+      });
+
+      // Store the token in localStorage for authentication
+      localStorage.setItem('adminToken', data.token); // Assuming the API returns a token
+
+      // Navigate to admin dashboard after successful login
+      navigate('/admin-dashboard');
+    } catch (error) {
+      // Handle errors
+      toast.error("Login failed", {
+        description: error instanceof Error ? error.message : "Invalid email or password. Please try again.",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
