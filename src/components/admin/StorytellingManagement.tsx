@@ -23,7 +23,7 @@ import {
   AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger 
 } from '@/components/ui/alert-dialog';
 import { 
-  Pencil, Trash2, CheckCircle, X, Search, Eye, Star, RefreshCw
+  Pencil, Trash2, CheckCircle, X, Search, Eye, Star, RefreshCw, FileAudio, Music
 } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 
@@ -38,7 +38,8 @@ const mockStories = [
     duration: '5:24',
     status: 'published',
     featured: true,
-    views: 1256
+    views: 1256,
+    audioFile: 'story_1.mp3'
   },
   {
     id: '2',
@@ -49,7 +50,8 @@ const mockStories = [
     duration: '4:48',
     status: 'published',
     featured: false,
-    views: 843
+    views: 843,
+    audioFile: 'story_2.mp3'
   },
   {
     id: '3',
@@ -60,7 +62,8 @@ const mockStories = [
     duration: '6:12',
     status: 'pending',
     featured: false,
-    views: 0
+    views: 0,
+    audioFile: 'story_3.mp3'
   },
   {
     id: '4',
@@ -71,14 +74,40 @@ const mockStories = [
     duration: '5:50',
     status: 'pending',
     featured: false,
-    views: 0
+    views: 0,
+    audioFile: 'story_4.mp3'
+  },
+  {
+    id: '5',
+    title: 'Digital Transformation in Rural India',
+    author: 'Rajesh Kumar',
+    category: 'Technology',
+    date: '2023-08-15',
+    duration: '7:10',
+    status: 'published',
+    featured: true,
+    views: 2450,
+    audioFile: 'story_5.mp3'
+  },
+  {
+    id: '6',
+    title: 'Building Green Tech Solutions in Bangalore',
+    author: 'Priya Sharma',
+    category: 'Sustainability',
+    date: '2023-09-01',
+    duration: '4:35',
+    status: 'published',
+    featured: false,
+    views: 1872,
+    audioFile: 'story_6.mp3'
   }
 ];
 
-// Categories
+// Categories with Indian context
 const categories = [
   'Technology', 'Entrepreneurship', 'Sustainability', 
-  'Healthcare', 'Education', 'Lifestyle'
+  'Healthcare', 'Education', 'Lifestyle', 'Indian Startups',
+  'Digital India', 'Innovation', 'Rural Development'
 ];
 
 const StorytellingManagement = () => {
@@ -88,6 +117,7 @@ const StorytellingManagement = () => {
   const [statusFilter, setStatusFilter] = useState('');
   const [editingStory, setEditingStory] = useState<any>(null);
   const { toast } = useToast();
+  const [isPlaying, setIsPlaying] = useState<string | null>(null);
 
   // Filter stories based on search term and filters
   const filteredStories = stories.filter(story => {
@@ -164,10 +194,23 @@ const StorytellingManagement = () => {
     });
   };
 
+  // Play/pause audio preview
+  const toggleAudioPreview = (id: string) => {
+    if (isPlaying === id) {
+      setIsPlaying(null);
+    } else {
+      setIsPlaying(id);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold">Storytelling Management</h2>
+        <Button variant="default">
+          <FileAudio className="h-4 w-4 mr-2" />
+          Add New Story
+        </Button>
       </div>
       
       <div className="flex items-center space-x-2">
@@ -234,6 +277,7 @@ const StorytellingManagement = () => {
               <TableHead>Status</TableHead>
               <TableHead>Duration</TableHead>
               <TableHead>Views</TableHead>
+              <TableHead>Audio</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -282,6 +326,16 @@ const StorytellingManagement = () => {
                   </TableCell>
                   <TableCell>{story.duration}</TableCell>
                   <TableCell>{story.views.toLocaleString()}</TableCell>
+                  <TableCell>
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      title={isPlaying === story.id ? "Pause" : "Play Preview"}
+                      onClick={() => toggleAudioPreview(story.id)}
+                    >
+                      <Music className={`h-4 w-4 ${isPlaying === story.id ? 'text-primary' : ''}`} />
+                    </Button>
+                  </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-1">
                       {story.status === 'pending' && (
@@ -322,7 +376,7 @@ const StorytellingManagement = () => {
                         <Eye className="h-4 w-4" />
                       </Button>
                       
-                      <Dialog open={!!editingStory && editingStory.id === story.id} onOpenChange={(open) => !open && setEditingStory(null)}>
+                      <Dialog>
                         <DialogTrigger asChild>
                           <Button
                             variant="ghost"
@@ -367,8 +421,8 @@ const StorytellingManagement = () => {
                                     value={editingStory.category}
                                     onValueChange={(value) => setEditingStory({...editingStory, category: value})}
                                   >
-                                    <SelectTrigger>
-                                      <SelectValue />
+                                    <SelectTrigger id="edit-story-category">
+                                      <SelectValue placeholder="Select category" />
                                     </SelectTrigger>
                                     <SelectContent>
                                       {categories.map(category => (
@@ -386,8 +440,8 @@ const StorytellingManagement = () => {
                                     value={editingStory.status}
                                     onValueChange={(value) => setEditingStory({...editingStory, status: value})}
                                   >
-                                    <SelectTrigger>
-                                      <SelectValue />
+                                    <SelectTrigger id="edit-story-status">
+                                      <SelectValue placeholder="Select status" />
                                     </SelectTrigger>
                                     <SelectContent>
                                       <SelectItem value="published">Published</SelectItem>
@@ -419,14 +473,17 @@ const StorytellingManagement = () => {
                               <div className="space-y-2">
                                 <Label>Media Content</Label>
                                 <div className="border rounded-md p-4 bg-muted/30">
-                                  <p className="text-sm text-muted-foreground">
-                                    Current audio file: story_{editingStory.id}.mp3
+                                  <p className="text-sm text-muted-foreground mb-2">
+                                    Current audio file: {editingStory.audioFile}
                                   </p>
-                                  <div className="mt-2">
-                                    <Button variant="outline" size="sm">
-                                      Replace Audio
-                                    </Button>
-                                  </div>
+                                  <audio 
+                                    controls 
+                                    src={`/audio/${editingStory.audioFile}`}
+                                    className="w-full mb-3"
+                                  />
+                                  <Button variant="outline" size="sm">
+                                    Replace Audio
+                                  </Button>
                                 </div>
                               </div>
                               
@@ -483,7 +540,7 @@ const StorytellingManagement = () => {
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={8} className="text-center py-8">
+                <TableCell colSpan={9} className="text-center py-8">
                   <div className="flex flex-col items-center justify-center text-muted-foreground">
                     <p>No stories found</p>
                     {(searchTerm || categoryFilter || statusFilter) && (
