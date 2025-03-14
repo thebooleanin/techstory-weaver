@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -28,42 +28,11 @@ import {
 } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 
-// Mock data for blog posts
-const mockBlogPosts = [
-  {
-    id: '1',
-    title: 'The Future of Electric Vehicles: Beyond Tesla',
-    excerpt: 'Exploring the next generation of EVs and the companies leading the charge in sustainable transportation.',
-    category: 'Cars',
-    status: 'published',
-    date: '2023-05-15',
-    tags: ['electric-vehicles', 'sustainability', 'tesla']
-  },
-  {
-    id: '2',
-    title: 'Mountain Biking Revolution: Smart Bikes That Track Your Ride',
-    excerpt: 'How modern technology is transforming the mountain biking experience with real-time metrics and trail navigation.',
-    category: 'Bikes',
-    status: 'published',
-    date: '2023-06-02',
-    tags: ['mountain-biking', 'smart-tech', 'fitness']
-  },
-  {
-    id: '3',
-    title: 'AI in Your Pocket: The New Generation of Smartphone Assistants',
-    excerpt: 'How the latest AI advancements are creating more helpful and intuitive smartphone assistants.',
-    category: 'Gadgets',
-    status: 'draft',
-    date: '2023-06-10',
-    tags: ['artificial-intelligence', 'smartphones', 'digital-assistants']
-  }
-];
-
 // Available categories
 const categories = ['Cars', 'Bikes', 'Gadgets', 'Technology'];
 
 const BlogManagement = () => {
-  const [blogs, setBlogs] = useState(mockBlogPosts);
+  const [blogs, setBlogs] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [editingBlog, setEditingBlog] = useState<any>(null);
   const [isNewBlogDialogOpen, setIsNewBlogDialogOpen] = useState(false);
@@ -75,10 +44,38 @@ const BlogManagement = () => {
     status: 'draft',
     metaTitle: '',
     metaDescription: '',
-    tags: [] as string[]
+    tags: [] as string[],
+    imageUrl: '',
+    author: {
+      name: 'Alex Morgan',
+      avatar: 'https://example.com/avatar.jpg',
+      role: 'Automotive Analyst'
+    },
+    readTime: '7 min',
+    date: new Date().toISOString().split('T')[0]
   });
   const [tagInput, setTagInput] = useState('');
   const { toast } = useToast();
+
+  // Fetch blogs from the API
+  const fetchBlogs = async () => {
+    try {
+      const response = await fetch('http://localhost:5000/api/articles?page=1&limit=10');
+      const data = await response.json();
+      setBlogs(data.data);
+    } catch (error) {
+      console.error('Error fetching blogs:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to fetch blogs. Please try again later.',
+        variant: 'destructive'
+      });
+    }
+  };
+
+  useEffect(() => {
+    fetchBlogs();
+  }, []);
 
   // Filter blogs based on search term
   const filteredBlogs = blogs.filter(blog => 
@@ -87,66 +84,122 @@ const BlogManagement = () => {
     blog.category.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleCreateBlog = () => {
-    // Validate form
-    if (!newBlog.title || !newBlog.excerpt || !newBlog.content || !newBlog.category) {
-      toast({
-        title: "Missing required fields",
-        description: "Please fill in all required fields",
-        variant: "destructive"
+  // Create a new blog
+  const handleCreateBlog = async () => {
+    try {
+      const response = await fetch('http://localhost:5000/api/articles', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(newBlog)
       });
-      return;
+
+      if (!response.ok) {
+        throw new Error('Failed to create blog');
+      }
+
+      const createdBlog = await response.json();
+      setBlogs([createdBlog, ...blogs]);
+      setIsNewBlogDialogOpen(false);
+      setNewBlog({
+        title: '',
+        excerpt: '',
+        content: '',
+        category: '',
+        status: 'draft',
+        metaTitle: '',
+        metaDescription: '',
+        tags: [],
+        imageUrl: '',
+        author: {
+          name: 'Alex Morgan',
+          avatar: 'https://example.com/avatar.jpg',
+          role: 'Automotive Analyst'
+        },
+        readTime: '7 min',
+        date: new Date().toISOString().split('T')[0]
+      });
+
+      toast({
+        title: 'Blog created',
+        description: 'Your blog post has been created successfully'
+      });
+    } catch (error) {
+      console.error('Error creating blog:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to create blog. Please try again.',
+        variant: 'destructive'
+      });
     }
-
-    const blogToAdd = {
-      ...newBlog,
-      id: (blogs.length + 1).toString(),
-      date: new Date().toISOString().split('T')[0]
-    };
-
-    setBlogs([blogToAdd, ...blogs]);
-    setIsNewBlogDialogOpen(false);
-    setNewBlog({
-      title: '',
-      excerpt: '',
-      content: '',
-      category: '',
-      status: 'draft',
-      metaTitle: '',
-      metaDescription: '',
-      tags: []
-    });
-
-    toast({
-      title: "Blog created",
-      description: "Your blog post has been created successfully"
-    });
   };
 
-  const handleUpdateBlog = () => {
+  // Update a blog
+  const handleUpdateBlog = async () => {
     if (!editingBlog) return;
 
-    setBlogs(blogs.map(blog => 
-      blog.id === editingBlog.id ? editingBlog : blog
-    ));
-    
-    setEditingBlog(null);
-    
-    toast({
-      title: "Blog updated",
-      description: "Your blog post has been updated successfully"
-    });
+    try {
+      const response = await fetch(`http://localhost:5000/api/articles/${editingBlog._id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(editingBlog)
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update blog');
+      }
+
+      const updatedBlog = await response.json();
+      setBlogs(blogs.map(blog => blog._id === updatedBlog._id ? updatedBlog : blog));
+      setEditingBlog(null);
+
+      toast({
+        title: 'Blog updated',
+        description: 'Your blog post has been updated successfully'
+      });
+    } catch (error) {
+      console.error('Error updating blog:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to update blog. Please try again.',
+        variant: 'destructive'
+      });
+    }
   };
 
-  const handleDeleteBlog = (id: string) => {
-    setBlogs(blogs.filter(blog => blog.id !== id));
+  // Delete a blog
+  const handleDeleteBlog = async (id: string) => {
+    console.log(id,"delete this object id");
     
-    toast({
-      title: "Blog deleted",
-      description: "Your blog post has been deleted successfully"
-    });
+    try {
+      const response = await fetch(`http://localhost:5000/api/articles/${id}`, {
+        method: 'DELETE'
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete blog');
+      }
+
+      setBlogs(blogs.filter(blog => blog._id !== id));
+
+      toast({
+        title: 'Blog deleted',
+        description: 'Your blog post has been deleted successfully'
+      });
+    } catch (error) {
+      console.error('Error deleting blog:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to delete blog. Please try again.',
+        variant: 'destructive'
+      });
+    }
   };
 
+  // Add a tag
   const handleAddTag = () => {
     if (!tagInput.trim()) return;
     
@@ -161,6 +214,7 @@ const BlogManagement = () => {
     setTagInput('');
   };
 
+  // Remove a tag
   const handleRemoveTag = (tag: string) => {
     if (editingBlog) {
       const newTags = editingBlog.tags.filter((t: string) => t !== tag);
@@ -613,7 +667,7 @@ const BlogManagement = () => {
                           </AlertDialogHeader>
                           <AlertDialogFooter>
                             <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction onClick={() => handleDeleteBlog(blog.id)} className="bg-destructive text-destructive-foreground">
+                            <AlertDialogAction onClick={() => handleDeleteBlog(blog._id)} className="bg-destructive text-destructive-foreground">
                               Delete
                             </AlertDialogAction>
                           </AlertDialogFooter>
