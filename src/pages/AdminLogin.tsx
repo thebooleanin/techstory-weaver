@@ -8,7 +8,7 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { ArrowRight, Eye, EyeOff } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
@@ -26,6 +26,7 @@ const formSchema = z.object({
 const AdminLogin = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const navigate = useNavigate();
 
   // Scroll to top on page load
   useEffect(() => {
@@ -54,7 +55,12 @@ const AdminLogin = () => {
         toast.success("Login successful!", {
           description: "Welcome back, admin!",
         });
-        // In a real app, you would handle auth state and redirect here
+        
+        // Store admin token in localStorage for authentication
+        localStorage.setItem('adminToken', 'demo-admin-token');
+        
+        // Navigate to admin dashboard after successful login
+        navigate('/admin-dashboard');
       } else {
         toast.error("Login failed", {
           description: "Invalid email or password. Please try again.",
