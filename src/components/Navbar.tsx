@@ -1,21 +1,26 @@
 
-import { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { Menu, X } from 'lucide-react';
+import { useState, useEffect } from "react";
+import { Link, useLocation } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
+import { useMobile } from "@/hooks/use-mobile";
+import { Button } from "@/components/ui/button";
+import { Menu, X } from "lucide-react";
+
+const navLinks = [
+  { name: "Home", href: "/" },
+  { name: "Services", href: "/services" },
+  { name: "Articles", href: "/articles" },
+  { name: "Storytelling", href: "/storytelling" },
+  { name: "Social Media", href: "/social-media" },
+  { name: "About", href: "/about" },
+  { name: "Contact", href: "/contact" },
+];
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { isMobile } = useMobile();
   const location = useLocation();
-
-  const navLinks = [
-    { name: 'Home', path: '/' },
-    { name: 'Services', path: '/services' },
-    { name: 'Articles', path: '/articles' },
-    { name: 'Storytelling', path: '/storytelling' },
-    { name: 'About', path: '/about' },
-    { name: 'Contact', path: '/contact' },
-  ];
 
   useEffect(() => {
     const handleScroll = () => {
@@ -26,101 +31,102 @@ const Navbar = () => {
       }
     };
 
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // Close mobile menu when route changes
   useEffect(() => {
-    // Close mobile menu when route changes
-    setIsMobileMenuOpen(false);
-  }, [location]);
-
-  // Prevent scrolling when mobile menu is open
-  useEffect(() => {
-    if (isMobileMenuOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'auto';
-    }
-    return () => {
-      document.body.style.overflow = 'auto';
-    };
-  }, [isMobileMenuOpen]);
+    setMobileMenuOpen(false);
+  }, [location.pathname]);
 
   return (
-    <header
+    <nav
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        isScrolled 
-          ? 'py-3 glass border-b border-border/30' 
-          : 'py-5 bg-transparent'
+        isScrolled
+          ? "bg-background/80 backdrop-blur-md shadow-sm py-4"
+          : "bg-transparent py-6"
       }`}
     >
-      <div className="container flex items-center justify-between">
+      <div className="container flex justify-between items-center">
         {/* Logo */}
-        <Link 
-          to="/" 
-          className="text-lg md:text-xl font-bold tracking-tight transition-transform hover:scale-[1.02] duration-300"
-        >
-          <span>The</span>
-          <span className="text-primary">Boolean</span>
+        <Link to="/" className="text-2xl font-bold">
+          TheBoolean
         </Link>
 
         {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center space-x-8">
-          {navLinks.map((link) => (
-            <Link
-              key={link.path}
-              to={link.path}
-              className={`text-sm font-medium hover:text-primary transition-all relative after:absolute after:left-0 after:right-0 after:bottom-0 after:h-[2px] after:origin-center after:scale-x-0 after:bg-primary after:transition-transform after:duration-300 hover:after:scale-x-100 ${
-                location.pathname === link.path
-                  ? 'text-primary after:scale-x-100'
-                  : 'text-foreground/80'
-              }`}
-            >
-              {link.name}
-            </Link>
-          ))}
-        </nav>
-
-        {/* Mobile Menu Button */}
-        <button
-          className="p-1 -mr-1 rounded-md md:hidden"
-          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          aria-label="Toggle menu"
-        >
-          {isMobileMenuOpen ? (
-            <X className="w-6 h-6" />
-          ) : (
-            <Menu className="w-6 h-6" />
-          )}
-        </button>
-
-        {/* Mobile Menu */}
-        <div
-          className={`fixed inset-0 z-40 bg-background md:hidden transition-all duration-300 ease-in-out ${
-            isMobileMenuOpen 
-              ? 'opacity-100 visible' 
-              : 'opacity-0 invisible'
-          }`}
-        >
-          <div className="flex flex-col h-full pt-16 p-6 space-y-6">
+        {!isMobile && (
+          <div className="flex items-center gap-6">
             {navLinks.map((link) => (
               <Link
-                key={link.path}
-                to={link.path}
-                className={`py-2 text-2xl font-medium transition-colors duration-200 ${
-                  location.pathname === link.path
-                    ? 'text-primary'
-                    : 'text-foreground'
+                key={link.name}
+                to={link.href}
+                className={`text-sm font-medium ${
+                  location.pathname === link.href
+                    ? "text-primary"
+                    : "text-foreground/80 hover:text-foreground transition-colors"
                 }`}
               >
                 {link.name}
               </Link>
             ))}
+            <Link to="/register">
+              <Button variant="default" size="sm">
+                Register
+              </Button>
+            </Link>
           </div>
-        </div>
+        )}
+
+        {/* Mobile Menu Button */}
+        {isMobile && (
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="text-foreground"
+          >
+            {mobileMenuOpen ? (
+              <X className="h-6 w-6" />
+            ) : (
+              <Menu className="h-6 w-6" />
+            )}
+          </button>
+        )}
       </div>
-    </header>
+
+      {/* Mobile Menu */}
+      <AnimatePresence>
+        {isMobile && mobileMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.3 }}
+            className="container overflow-hidden"
+          >
+            <div className="flex flex-col gap-4 py-4">
+              {navLinks.map((link) => (
+                <Link
+                  key={link.name}
+                  to={link.href}
+                  className={`text-sm font-medium py-2 ${
+                    location.pathname === link.href
+                      ? "text-primary"
+                      : "text-foreground/80"
+                  }`}
+                >
+                  {link.name}
+                </Link>
+              ))}
+              <Link to="/register" className="mt-2">
+                <Button variant="default" size="sm" className="w-full">
+                  Register
+                </Button>
+              </Link>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </nav>
   );
 };
 
