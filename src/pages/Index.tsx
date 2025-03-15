@@ -8,7 +8,7 @@ import Footer from '@/components/Footer';
 import { ArrowRight, BookOpen, Headphones, Calendar, TrendingUp, Award, Users, Star } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Helmet } from 'react-helmet';
+import { Helmet } from 'react-helmet-async';
 
 // Create a reusable API service for stories
 import { fetchStories } from '@/services/api';
