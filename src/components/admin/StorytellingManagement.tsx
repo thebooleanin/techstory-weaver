@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { z } from 'zod';
@@ -50,8 +51,8 @@ const storyFormSchema = z.object({
   date: z.string().min(1, { message: 'Date is required' }),
   description: z.string().optional(),
   featured: z.boolean().optional(),
-  image: z.instanceof(File).optional(),
-  audioSrc: z.instanceof(File).optional(),
+  image: z.instanceof(File).optional().nullable(),
+  audioSrc: z.instanceof(File).optional().nullable(),
 });
 
 type StoryFormValues = z.infer<typeof storyFormSchema>;
@@ -69,6 +70,7 @@ const categoryOptions = [
   'EdTech',
   'HealthTech',
   'Sustainability',
+  'Fiction',
 ];
 
 const StorytellingManagement = () => {
@@ -85,7 +87,7 @@ const StorytellingManagement = () => {
     }
   }, []);
   
-  const apiUrl = siteConfig?.apiEndpoints?.stories || 'http://localhost:5000/api/stories';
+  const apiUrl = siteConfig?.apiEndpoints?.stories || undefined;
   
   const form = useForm<StoryFormValues>({
     resolver: zodResolver(storyFormSchema),
@@ -97,13 +99,14 @@ const StorytellingManagement = () => {
       date: new Date().toISOString().split('T')[0],
       description: '',
       featured: false,
+      image: null,
+      audioSrc: null,
     },
   });
   
   const { data: stories = [], isLoading, error, refetch } = useQuery({
     queryKey: ['stories'],
     queryFn: () => fetchStories(apiUrl),
-    enabled: !!apiUrl,
   });
   
   const createMutation = useMutation({
@@ -119,7 +122,7 @@ const StorytellingManagement = () => {
     onError: (error) => {
       toast({
         title: "Error",
-        description: `Failed to create story: ${error.message}`,
+        description: `Failed to create story: ${error instanceof Error ? error.message : 'Unknown error'}`,
         variant: "destructive",
       });
     },
@@ -140,7 +143,7 @@ const StorytellingManagement = () => {
     onError: (error) => {
       toast({
         title: "Error",
-        description: `Failed to update story: ${error.message}`,
+        description: `Failed to update story: ${error instanceof Error ? error.message : 'Unknown error'}`,
         variant: "destructive",
       });
     },
@@ -159,13 +162,14 @@ const StorytellingManagement = () => {
     onError: (error) => {
       toast({
         title: "Error",
-        description: `Failed to delete story: ${error.message}`,
+        description: `Failed to delete story: ${error instanceof Error ? error.message : 'Unknown error'}`,
         variant: "destructive",
       });
     },
   });
   
   const onSubmit = (values: StoryFormValues) => {
+    // Ensure all required fields are present for StoryFormData
     const formData: StoryFormData = {
       title: values.title,
       author: values.author,
@@ -195,15 +199,16 @@ const StorytellingManagement = () => {
         date: editingStory.date,
         description: editingStory.description || '',
         featured: editingStory.featured || false,
+        // We can't set file values when editing - they need to be uploaded again
+        image: null,
+        audioSrc: null,
       });
     }
   }, [editingStory, form]);
   
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>, field: 'image' | 'audioSrc') => {
-    const file = event.target.files?.[0];
-    if (file) {
-      form.setValue(field, file);
-    }
+    const file = event.target.files?.[0] || null;
+    form.setValue(field, file);
   };
   
   const formatDate = (dateString: string) => {
@@ -221,6 +226,13 @@ const StorytellingManagement = () => {
   const handleCancelEdit = () => {
     setEditingStory(null);
     form.reset();
+  };
+
+  const handleCreateTabClick = () => {
+    const createTab = document.querySelector('[data-state="inactive"][value="create"]');
+    if (createTab && createTab instanceof HTMLElement) {
+      createTab.click();
+    }
   };
   
   return (
@@ -269,12 +281,7 @@ const StorytellingManagement = () => {
                   <p className="mb-4">No stories found.</p>
                   <Button 
                     variant="outline" 
-                    onClick={() => {
-                      const createTab = document.querySelector('[data-state="inactive"][value="create"]');
-                      if (createTab instanceof HTMLElement) {
-                        createTab.click();
-                      }
-                    }}
+                    onClick={handleCreateTabClick}
                   >
                     <Plus className="h-4 w-4 mr-2" />
                     Create your first story

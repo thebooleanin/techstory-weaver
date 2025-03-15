@@ -7,11 +7,17 @@ export interface Story {
   category: string;
   date: string;
   description?: string;
-  imageUrl: string;
+  image?: string;
+  imageUrl?: string;
   audioUrl?: string;
+  audioSrc?: string;
   featured?: boolean;
   status?: 'published' | 'pending' | 'rejected';
   views?: number;
+  isLive?: boolean;
+  listeners?: number;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 // Form data interface for creating/updating stories
@@ -23,6 +29,6 @@ export interface StoryFormData {
   date: string;
   description?: string;
   featured?: boolean;
-  image?: File;
-  audioSrc?: File;
+  image?: File | null;
+  audioSrc?: File | null;
 }

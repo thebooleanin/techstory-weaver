@@ -2,7 +2,7 @@
 import { Story, StoryFormData } from '@/types/story';
 
 // Base URL from environment or fallback
-const API_BASE_URL = 'http://13.232.139.240:5000/api';
+const API_BASE_URL = 'http://localhost:5000/api';
 
 // Fetch all stories
 export const fetchStories = async (customUrl?: string): Promise<Story[]> => {
@@ -15,7 +15,18 @@ export const fetchStories = async (customUrl?: string): Promise<Story[]> => {
     }
     
     const data = await response.json();
-    return data.stories || data; // Handle different API response formats
+    
+    // Handle the correct response format
+    if (data.success && Array.isArray(data.data)) {
+      return data.data;
+    } else if (Array.isArray(data.stories)) {
+      return data.stories;
+    } else if (Array.isArray(data)) {
+      return data;
+    }
+    
+    console.error('Unexpected API response format:', data);
+    return [];
   } catch (error) {
     console.error('Error fetching stories:', error);
     return [];
@@ -34,7 +45,15 @@ export const fetchStoryById = async (id: string, customUrl?: string): Promise<St
     }
     
     const data = await response.json();
-    return data.story || data;
+    
+    // Handle different API response formats
+    if (data.success && data.data) {
+      return data.data;
+    } else if (data.story) {
+      return data.story;
+    }
+    
+    return data;
   } catch (error) {
     console.error(`Error fetching story with id ${id}:`, error);
     return null;
@@ -76,7 +95,15 @@ export const createStory = async (storyData: StoryFormData, customUrl?: string):
     }
     
     const data = await response.json();
-    return data.story || data;
+    
+    // Handle different API response formats
+    if (data.success && data.data) {
+      return data.data;
+    } else if (data.story) {
+      return data.story;
+    }
+    
+    return data;
   } catch (error) {
     console.error('Error creating story:', error);
     return null;
@@ -123,7 +150,15 @@ export const updateStory = async (
     }
     
     const data = await response.json();
-    return data.story || data;
+    
+    // Handle different API response formats
+    if (data.success && data.data) {
+      return data.data;
+    } else if (data.story) {
+      return data.story;
+    }
+    
+    return data;
   } catch (error) {
     console.error(`Error updating story with id ${id}:`, error);
     return null;
