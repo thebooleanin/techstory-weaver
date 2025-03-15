@@ -57,9 +57,21 @@ const Hero = () => {
     <div ref={heroRef} className="relative overflow-hidden pt-20 pb-16 sm:pb-32 min-h-[90vh] flex items-center">
       {/* Background elements with Indian-inspired colors and patterns */}
       <div className="absolute inset-0 z-0">
-        <div className={`absolute top-1/4 -right-64 w-[500px] h-[500px] rounded-full bg-[${primaryColor}]/10 blur-3xl parallax`} data-speed="0.03"></div>
-        <div className={`absolute bottom-0 left-0 w-[300px] h-[300px] rounded-full bg-[${secondaryColor}]/15 blur-3xl parallax`} data-speed="0.05"></div>
-        <div className={`absolute top-1/3 left-1/4 w-[200px] h-[200px] rounded-full bg-[${accentColor}]/15 blur-3xl parallax`} data-speed="0.08"></div>
+        <div 
+          className="absolute top-1/4 -right-64 w-[500px] h-[500px] rounded-full blur-3xl parallax"
+          style={{ backgroundColor: `${primaryColor}10` }}
+          data-speed="0.03"
+        ></div>
+        <div 
+          className="absolute bottom-0 left-0 w-[300px] h-[300px] rounded-full blur-3xl parallax"
+          style={{ backgroundColor: `${secondaryColor}15` }}
+          data-speed="0.05"
+        ></div>
+        <div 
+          className="absolute top-1/3 left-1/4 w-[200px] h-[200px] rounded-full blur-3xl parallax"
+          style={{ backgroundColor: `${accentColor}15` }}
+          data-speed="0.08"
+        ></div>
         
         {/* Indian pattern overlay */}
         <div className="absolute inset-0 bg-[url('/patterns/indian-pattern.svg')] opacity-5"></div>
@@ -81,7 +93,13 @@ const Hero = () => {
       
       <div className="container relative z-10">
         <div className="max-w-3xl mx-auto text-center">
-          <div className={`inline-block mb-3 px-3 py-1 bg-gradient-to-r from-[${primaryColor}]/20 via-white/10 to-[${secondaryColor}]/20 text-primary text-xs font-medium rounded-full animate-fade-in border border-[${primaryColor}]/20`}>
+          <div 
+            className="inline-block mb-3 px-3 py-1 text-primary text-xs font-medium rounded-full animate-fade-in border"
+            style={{ 
+              backgroundImage: `linear-gradient(to right, ${primaryColor}20, #ffffff10, ${secondaryColor}20)`,
+              borderColor: `${primaryColor}20` 
+            }}
+          >
             India's Premier Tech Agency
           </div>
           
@@ -96,7 +114,7 @@ const Hero = () => {
           <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 justify-center animate-slide-up" style={{ animationDelay: '0.3s' }}>
             <Link
               to="/articles"
-              className="inline-flex items-center px-6 py-3 text-base font-medium bg-[#FF9933] text-white rounded-lg shadow-md hover:bg-[#FF9933]/90 transition-all duration-300 hover:shadow-lg"
+              className="inline-flex items-center px-6 py-3 text-base font-medium text-white rounded-lg shadow-md hover:opacity-90 transition-all duration-300 hover:shadow-lg"
               style={{ backgroundColor: primaryColor, borderColor: primaryColor }}
             >
               Explore Articles
@@ -104,8 +122,8 @@ const Hero = () => {
             </Link>
             <Link
               to="/storytelling"
-              className="inline-flex items-center px-6 py-3 text-base font-medium bg-[#f8f8f8] text-[#333] border border-[#138808]/20 rounded-lg hover:bg-[#f0f0f0] transition-all duration-300"
-              style={{ borderColor: `${secondaryColor}/20` }}
+              className="inline-flex items-center px-6 py-3 text-base font-medium bg-[#f8f8f8] text-[#333] border rounded-lg hover:bg-[#f0f0f0] transition-all duration-300"
+              style={{ borderColor: `${secondaryColor}20` }}
             >
               Listen to Stories
             </Link>

@@ -1,11 +1,9 @@
 
-import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowRight, Clock } from 'lucide-react';
 
 interface ArticleCardProps {
-  id: string;
+  _id: string;
   title: string;
   excerpt: string;
   imageUrl: string;
@@ -15,8 +13,7 @@ interface ArticleCardProps {
   delay?: number;
 }
 
-
-const ArticleCard = ({ _id, title, excerpt, imageUrl, category, readTime, date, delay }) => {
+const ArticleCard = ({ _id, title, excerpt, imageUrl, category, readTime, date, delay = 0 }: ArticleCardProps) => {
   return (
     <Link to={`/articles/${_id}`} className="group block">
       <motion.div
@@ -52,7 +49,5 @@ const ArticleCard = ({ _id, title, excerpt, imageUrl, category, readTime, date, 
     </Link>
   );
 };
-
-
 
 export default ArticleCard;
