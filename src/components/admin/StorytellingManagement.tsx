@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { z } from 'zod';
@@ -43,7 +42,6 @@ import {
 import { fetchStories, createStory, updateStory, deleteStory } from '@/services/api';
 import { Story, StoryFormData } from '@/types/story';
 
-// Form schema for story creation and editing
 const storyFormSchema = z.object({
   title: z.string().min(3, { message: 'Title must be at least 3 characters long' }),
   author: z.string().min(2, { message: 'Author name is required' }),
@@ -78,21 +76,17 @@ const StorytellingManagement = () => {
   const [editingStory, setEditingStory] = useState<Story | null>(null);
   const [deleteStoryId, setDeleteStoryId] = useState<string | null>(null);
   
-  // Get QueryClient from the context
   const queryClient = useQueryClient();
   
   useEffect(() => {
-    // Load site config from localStorage
     const config = localStorage.getItem('siteConfig');
     if (config) {
       setSiteConfig(JSON.parse(config));
     }
   }, []);
   
-  // Get API URL from config or use default
   const apiUrl = siteConfig?.apiEndpoints?.stories || 'http://localhost:5000/api/stories';
   
-  // Form for creating/editing stories
   const form = useForm<StoryFormValues>({
     resolver: zodResolver(storyFormSchema),
     defaultValues: {
@@ -106,14 +100,12 @@ const StorytellingManagement = () => {
     },
   });
   
-  // Query for fetching stories
   const { data: stories = [], isLoading, error, refetch } = useQuery({
     queryKey: ['stories'],
     queryFn: () => fetchStories(apiUrl),
     enabled: !!apiUrl,
   });
   
-  // Mutation for creating a story
   const createMutation = useMutation({
     mutationFn: (data: StoryFormData) => createStory(data, apiUrl),
     onSuccess: () => {
@@ -133,7 +125,6 @@ const StorytellingManagement = () => {
     },
   });
   
-  // Mutation for updating a story
   const updateMutation = useMutation({
     mutationFn: ({ id, data }: { id: string; data: StoryFormData }) => 
       updateStory(id, data, apiUrl),
@@ -155,7 +146,6 @@ const StorytellingManagement = () => {
     },
   });
   
-  // Mutation for deleting a story
   const deleteMutation = useMutation({
     mutationFn: (id: string) => deleteStory(id, apiUrl),
     onSuccess: () => {
@@ -175,16 +165,26 @@ const StorytellingManagement = () => {
     },
   });
   
-  // Handle form submission
   const onSubmit = (values: StoryFormValues) => {
+    const formData: StoryFormData = {
+      title: values.title,
+      author: values.author,
+      category: values.category,
+      duration: values.duration,
+      date: values.date,
+      description: values.description,
+      featured: values.featured,
+      image: values.image,
+      audioSrc: values.audioSrc
+    };
+    
     if (editingStory) {
-      updateMutation.mutate({ id: editingStory._id, data: values });
+      updateMutation.mutate({ id: editingStory._id, data: formData });
     } else {
-      createMutation.mutate(values);
+      createMutation.mutate(formData);
     }
   };
   
-  // Set form values when editing a story
   useEffect(() => {
     if (editingStory) {
       form.reset({
@@ -199,7 +199,6 @@ const StorytellingManagement = () => {
     }
   }, [editingStory, form]);
   
-  // Handle file input change
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>, field: 'image' | 'audioSrc') => {
     const file = event.target.files?.[0];
     if (file) {
@@ -207,7 +206,6 @@ const StorytellingManagement = () => {
     }
   };
   
-  // Format date for display
   const formatDate = (dateString: string) => {
     try {
       return new Date(dateString).toLocaleDateString('en-US', {
@@ -220,7 +218,6 @@ const StorytellingManagement = () => {
     }
   };
   
-  // Handle cancel edit
   const handleCancelEdit = () => {
     setEditingStory(null);
     form.reset();
@@ -272,7 +269,12 @@ const StorytellingManagement = () => {
                   <p className="mb-4">No stories found.</p>
                   <Button 
                     variant="outline" 
-                    onClick={() => document.querySelector('[data-state="inactive"][value="create"]')?.click()}
+                    onClick={() => {
+                      const createTab = document.querySelector('[data-state="inactive"][value="create"]');
+                      if (createTab instanceof HTMLElement) {
+                        createTab.click();
+                      }
+                    }}
                   >
                     <Plus className="h-4 w-4 mr-2" />
                     Create your first story

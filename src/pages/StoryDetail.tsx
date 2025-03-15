@@ -161,7 +161,12 @@ const StoryDetail = () => {
               {story.audioUrl && (
                 <div className="bg-muted/30 p-6 rounded-xl mb-8">
                   <h3 className="text-lg font-semibold mb-4">Listen to the story</h3>
-                  <AudioPlayer audioSrc={story.audioUrl} title={story.title} />
+                  <AudioPlayer 
+                    audioSrc={story.audioUrl} 
+                    title={story.title} 
+                    author={story.author}
+                    imageUrl={story.imageUrl}
+                  />
                 </div>
               )}
             </div>
