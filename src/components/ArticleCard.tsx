@@ -14,6 +14,9 @@ interface ArticleCardProps {
 }
 
 const ArticleCard = ({ _id, title, excerpt, imageUrl, category, readTime, date, delay = 0 }: ArticleCardProps) => {
+  // Clean up the excerpt if it contains HTML tags
+  const cleanExcerpt = excerpt.replace(/<\/?[^>]+(>|$)/g, "");
+  
   return (
     <Link to={`/articles/${_id}`} className="group block">
       <motion.div
@@ -24,20 +27,24 @@ const ArticleCard = ({ _id, title, excerpt, imageUrl, category, readTime, date, 
       >
         <div className="relative aspect-video">
           <img
-            src={imageUrl}
+            src={imageUrl || '/placeholder.svg'}
             alt={title}
             className="w-full h-full object-cover"
+            onError={(e) => {
+              // Fallback to placeholder if image fails to load
+              (e.target as HTMLImageElement).src = '/placeholder.svg';
+            }}
           />
         </div>
         <div className="p-6">
           <span className="inline-block mb-2 px-3 py-1 bg-primary/10 text-primary text-xs font-medium rounded-full">
             {category}
           </span>
-          <h3 className="text-xl font-semibold mb-2 group-hover:text-primary transition-colors">
+          <h3 className="text-xl font-semibold mb-2 group-hover:text-primary transition-colors line-clamp-2">
             {title}
           </h3>
           <p className="text-muted-foreground text-sm line-clamp-2 mb-4">
-            {excerpt}
+            {cleanExcerpt}
           </p>
           <div className="flex items-center gap-4 text-sm text-muted-foreground">
             <span>{readTime}</span>

@@ -51,6 +51,19 @@ const Articles = () => {
   const [sortBy, setSortBy] = useState<string>('');
   const [showFilters, setShowFilters] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [apiConfig, setApiConfig] = useState<{
+    baseUrl: string;
+    endpoints: {
+      articles: string;
+      articleById: string;
+    };
+  }>({
+    baseUrl: 'http://localhost:5000',
+    endpoints: {
+      articles: '/api/articles',
+      articleById: '/api/articles/:id',
+    }
+  });
 
   const itemsPerPage = 6;
 
@@ -69,14 +82,59 @@ const Articles = () => {
     }
   });
 
+  // Load API configuration from site config
+  useEffect(() => {
+    const siteConfig = localStorage.getItem('siteConfig');
+    if (siteConfig) {
+      const config = JSON.parse(siteConfig);
+      if (config.api) {
+        setApiConfig({
+          baseUrl: config.api.baseUrl || apiConfig.baseUrl,
+          endpoints: {
+            articles: config.api.endpoints?.articles || apiConfig.endpoints.articles,
+            articleById: config.api.endpoints?.articleById || apiConfig.endpoints.articleById,
+          }
+        });
+      }
+    }
+  }, []);
+
+  // Build the API URL from config
+  const buildApiUrl = (endpoint: string, params?: Record<string, string>) => {
+    let url = `${apiConfig.baseUrl}${endpoint}`;
+    
+    // Replace path parameters
+    if (params) {
+      Object.entries(params).forEach(([key, value]) => {
+        url = url.replace(`:${key}`, value);
+      });
+    }
+    
+    return url;
+  };
+
   // Fetch articles from the API
   const fetchArticles = async (page = 1, limit = itemsPerPage) => {
     setIsLoading(true);
     try {
-      const response = await fetch(`http://localhost:5000/api/articles?page=${page}&limit=${limit}`);
+      // Build the URL with query parameters
+      const url = new URL(buildApiUrl(apiConfig.endpoints.articles));
+      url.searchParams.append('page', page.toString());
+      url.searchParams.append('limit', limit.toString());
+      
+      if (searchTerm) url.searchParams.append('search', searchTerm);
+      if (category) url.searchParams.append('category', category);
+      if (sortBy) url.searchParams.append('sortBy', sortBy);
+      
+      const response = await fetch(url.toString());
+      if (!response.ok) {
+        throw new Error(`Failed to fetch articles: ${response.status}`);
+      }
+      
       const data = await response.json();
-      setArticles(data.data);
-      setTotalPages(data.pagination.totalPages);
+      
+      setArticles(data.data || []);
+      setTotalPages(data.pagination?.totalPages || 1);
     } catch (error) {
       console.error('Error fetching articles:', error);
       toast({
@@ -91,7 +149,7 @@ const Articles = () => {
 
   useEffect(() => {
     fetchArticles(currentPage);
-  }, [currentPage]);
+  }, [currentPage, apiConfig]);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -99,8 +157,20 @@ const Articles = () => {
 
   const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    // Search is already handled by the useEffect
+    setCurrentPage(1); // Reset to first page when searching
+    fetchArticles(1);
   };
+
+  const handleFilterChange = () => {
+    setCurrentPage(1); // Reset to first page when filters change
+    fetchArticles(1);
+  };
+
+  useEffect(() => {
+    if (category || sortBy) {
+      handleFilterChange();
+    }
+  }, [category, sortBy]);
 
   const handlePageChange = (pageNumber: number) => {
     setCurrentPage(pageNumber);
@@ -128,7 +198,7 @@ const Articles = () => {
       };
 
       // Call the API
-      const response = await fetch("http://localhost:5000/api/articles", {
+      const response = await fetch(buildApiUrl(apiConfig.endpoints.articles), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -465,7 +535,7 @@ const Articles = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-10">
                 {articles.map((article, index) => (
                   <ArticleCard
-                    key={article.id}
+                    key={article._id}
                     {...article}
                     delay={index * 0.1}
                   />
@@ -518,6 +588,7 @@ const Articles = () => {
                   setSearchTerm('');
                   setCategory('');
                   setSortBy('');
+                  fetchArticles(1);
                 }}
               >
                 Reset Filters
@@ -533,3 +604,4 @@ const Articles = () => {
 };
 
 export default Articles;
+

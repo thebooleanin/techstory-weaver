@@ -48,45 +48,45 @@ const Hero = () => {
     monthlyReaders: siteConfig?.metrics?.monthlyReaders || 10000,
   };
 
-  // Get colors from site config or use defaults (Indian flag colors)
+  // Get colors from site config or use defaults
   const primaryColor = siteConfig?.colors?.primary || '#FF9933'; // Saffron
   const secondaryColor = siteConfig?.colors?.secondary || '#138808'; // Green
-  const accentColor = siteConfig?.colors?.accent || '#000080'; // Navy Blue (Ashoka Chakra color)
+  const accentColor = siteConfig?.colors?.accent || '#000080'; // Navy Blue
 
   return (
     <div ref={heroRef} className="relative overflow-hidden pt-20 pb-16 sm:pb-32 min-h-[90vh] flex items-center">
-      {/* Background elements with Indian-inspired colors and patterns */}
-      <div className="absolute inset-0 z-0">
+      {/* Modern abstract background with cleaner aesthetic */}
+      <div className="absolute inset-0 z-0 bg-gradient-to-br from-white to-gray-50">
+        {/* Soft gradient orbs */}
         <div 
-          className="absolute top-1/4 -right-64 w-[500px] h-[500px] rounded-full blur-3xl parallax"
-          style={{ backgroundColor: `${primaryColor}10` }}
+          className="absolute top-0 right-0 w-[600px] h-[600px] rounded-full blur-3xl opacity-20 parallax"
+          style={{ background: `radial-gradient(circle, ${primaryColor} 0%, transparent 70%)` }}
           data-speed="0.03"
         ></div>
         <div 
-          className="absolute bottom-0 left-0 w-[300px] h-[300px] rounded-full blur-3xl parallax"
-          style={{ backgroundColor: `${secondaryColor}15` }}
+          className="absolute bottom-0 left-0 w-[500px] h-[500px] rounded-full blur-3xl opacity-20 parallax"
+          style={{ background: `radial-gradient(circle, ${secondaryColor} 0%, transparent 70%)` }}
           data-speed="0.05"
         ></div>
         <div 
-          className="absolute top-1/3 left-1/4 w-[200px] h-[200px] rounded-full blur-3xl parallax"
-          style={{ backgroundColor: `${accentColor}15` }}
+          className="absolute top-1/3 left-1/4 w-[300px] h-[300px] rounded-full blur-3xl opacity-15 parallax"
+          style={{ background: `radial-gradient(circle, ${accentColor} 0%, transparent 70%)` }}
           data-speed="0.08"
         ></div>
         
-        {/* Indian pattern overlay */}
-        <div className="absolute inset-0 bg-[url('/patterns/indian-pattern.svg')] opacity-5"></div>
-
-        {/* Rangoli-inspired decorative element */}
-        <div className="absolute -top-20 -right-20 w-[300px] h-[300px] opacity-10 parallax" data-speed="0.02">
-          <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
-            <path fill={primaryColor} d="M47.5,-61.2C62.9,-53.4,77.5,-41.5,83.2,-26.1C89,-10.7,85.9,8.2,78.6,24.9C71.3,41.6,59.8,56.1,45,65C30.2,73.9,12.1,77.3,-4.4,82.7C-21,88.1,-35.9,95.7,-48.9,92C-61.9,88.4,-72.9,73.7,-80.5,57.1C-88.1,40.4,-92.3,21.7,-91.1,3.8C-90,-14.1,-83.4,-31.3,-72.8,-44.6C-62.2,-57.9,-47.5,-67.2,-33,-70.4C-18.4,-73.5,-3.9,-70.4,9.5,-67.1C22.9,-63.7,32.1,-69,47.5,-61.2Z" transform="translate(100 100)" />
+        {/* Subtle grid pattern */}
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSA2MCAwIEwgMCAwIDAgNjAiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzIyMiIgc3Ryb2tlLXdpZHRoPSIwLjIiIG9wYWNpdHk9IjAuMDUiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L3N2Zz4=')] opacity-30"></div>
+        
+        {/* Floating decorative elements */}
+        <div className="absolute top-1/4 right-1/4 w-16 h-16 opacity-10 parallax" data-speed="0.06">
+          <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" fill={primaryColor}>
+            <path d="M47.5,-61.2C62.9,-53.4,77.5,-41.5,83.2,-26.1C89,-10.7,85.9,8.2,78.6,24.9C71.3,41.6,59.8,56.1,45,65C30.2,73.9,12.1,77.3,-4.4,82.7C-21,88.1,-35.9,95.7,-48.9,92C-61.9,88.4,-72.9,73.7,-80.5,57.1C-88.1,40.4,-92.3,21.7,-91.1,3.8C-90,-14.1,-83.4,-31.3,-72.8,-44.6C-62.2,-57.9,-47.5,-67.2,-33,-70.4C-18.4,-73.5,-3.9,-70.4,9.5,-67.1C22.9,-63.7,32.1,-69,47.5,-61.2Z" />
           </svg>
         </div>
         
-        {/* Chakra-inspired element */}
-        <div className="absolute bottom-10 right-10 w-[250px] h-[250px] opacity-10 parallax" data-speed="0.04">
-          <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
-            <path fill={secondaryColor} d="M46.5,-53.2C58.3,-43.9,64.6,-27.2,68.1,-9.6C71.6,8,72.2,26.5,64.1,40.1C55.9,53.8,38.9,62.8,21.7,67.2C4.5,71.6,-12.9,71.6,-28.4,65.3C-43.9,59.1,-57.5,46.7,-65.2,31.1C-72.9,15.5,-74.6,-3.3,-69.3,-19.6C-63.9,-35.9,-51.5,-49.7,-37.1,-58.2C-22.7,-66.7,-6.3,-69.8,8.6,-68.1C23.6,-66.3,34.7,-62.6,46.5,-53.2Z" transform="translate(100 100)" />
+        <div className="absolute bottom-1/3 left-1/3 w-20 h-20 opacity-10 parallax" data-speed="0.07">
+          <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" fill={secondaryColor}>
+            <path d="M46.5,-53.2C58.3,-43.9,64.6,-27.2,68.1,-9.6C71.6,8,72.2,26.5,64.1,40.1C55.9,53.8,38.9,62.8,21.7,67.2C4.5,71.6,-12.9,71.6,-28.4,65.3C-43.9,59.1,-57.5,46.7,-65.2,31.1C-72.9,15.5,-74.6,-3.3,-69.3,-19.6C-63.9,-35.9,-51.5,-49.7,-37.1,-58.2C-22.7,-66.7,-6.3,-69.8,8.6,-68.1C23.6,-66.3,34.7,-62.6,46.5,-53.2Z" />
           </svg>
         </div>
       </div>
@@ -94,10 +94,12 @@ const Hero = () => {
       <div className="container relative z-10">
         <div className="max-w-3xl mx-auto text-center">
           <div 
-            className="inline-block mb-3 px-3 py-1 text-primary text-xs font-medium rounded-full animate-fade-in border"
+            className="inline-block mb-3 px-3 py-1 text-primary text-xs font-medium rounded-full animate-fade-in backdrop-blur-sm"
             style={{ 
-              backgroundImage: `linear-gradient(to right, ${primaryColor}20, #ffffff10, ${secondaryColor}20)`,
-              borderColor: `${primaryColor}20` 
+              backgroundColor: `${primaryColor}10`,
+              color: primaryColor,
+              borderColor: `${primaryColor}40`,
+              border: '1px solid'
             }}
           >
             India's Premier Tech Agency
@@ -123,7 +125,7 @@ const Hero = () => {
             <Link
               to="/storytelling"
               className="inline-flex items-center px-6 py-3 text-base font-medium bg-[#f8f8f8] text-[#333] border rounded-lg hover:bg-[#f0f0f0] transition-all duration-300"
-              style={{ borderColor: `${secondaryColor}20` }}
+              style={{ borderColor: `${secondaryColor}40` }}
             >
               Listen to Stories
             </Link>
