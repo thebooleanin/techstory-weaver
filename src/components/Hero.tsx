@@ -48,34 +48,41 @@ const Hero = () => {
     monthlyReaders: siteConfig?.metrics?.monthlyReaders || 10000,
   };
 
-  // Get colors from site config or use defaults
-  const primaryColor = siteConfig?.colors?.primary || '#FF9933'; // Saffron
-  const secondaryColor = siteConfig?.colors?.secondary || '#138808'; // Green
-  const accentColor = siteConfig?.colors?.accent || '#000080'; // Navy Blue
+  // Modern vibrant color scheme
+  const primaryColor = siteConfig?.colors?.primary || '#6366F1'; // Indigo
+  const secondaryColor = siteConfig?.colors?.secondary || '#EC4899'; // Pink
+  const accentColor = siteConfig?.colors?.accent || '#8B5CF6'; // Purple
 
   return (
     <div ref={heroRef} className="relative overflow-hidden pt-20 pb-16 sm:pb-32 min-h-[90vh] flex items-center">
-      {/* Modern abstract background with cleaner aesthetic */}
-      <div className="absolute inset-0 z-0 bg-gradient-to-br from-white to-gray-50">
-        {/* Soft gradient orbs */}
+      {/* Modern aesthetic background with gradients and patterns */}
+      <div className="absolute inset-0 z-0">
+        {/* Gradient background */}
+        <div className="absolute inset-0 bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50"></div>
+        
+        {/* Colorful gradient orbs */}
         <div 
-          className="absolute top-0 right-0 w-[600px] h-[600px] rounded-full blur-3xl opacity-20 parallax"
+          className="absolute top-0 right-0 w-[700px] h-[700px] rounded-full blur-3xl opacity-30 parallax"
           style={{ background: `radial-gradient(circle, ${primaryColor} 0%, transparent 70%)` }}
           data-speed="0.03"
         ></div>
         <div 
-          className="absolute bottom-0 left-0 w-[500px] h-[500px] rounded-full blur-3xl opacity-20 parallax"
+          className="absolute -bottom-20 -left-20 w-[600px] h-[600px] rounded-full blur-3xl opacity-20 parallax"
           style={{ background: `radial-gradient(circle, ${secondaryColor} 0%, transparent 70%)` }}
           data-speed="0.05"
         ></div>
         <div 
-          className="absolute top-1/3 left-1/4 w-[300px] h-[300px] rounded-full blur-3xl opacity-15 parallax"
+          className="absolute top-1/3 left-1/4 w-[400px] h-[400px] rounded-full blur-3xl opacity-15 parallax"
           style={{ background: `radial-gradient(circle, ${accentColor} 0%, transparent 70%)` }}
           data-speed="0.08"
         ></div>
         
-        {/* Subtle grid pattern */}
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSA2MCAwIEwgMCAwIDAgNjAiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzIyMiIgc3Ryb2tlLXdpZHRoPSIwLjIiIG9wYWNpdHk9IjAuMDUiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L3N2Zz4=')] opacity-30"></div>
+        {/* Modern geometric patterns - hexagon grid */}
+        <div className="absolute inset-0 opacity-[0.03]" 
+          style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='49' viewBox='0 0 28 49'%3E%3Cg fill-rule='evenodd'%3E%3Cg id='hexagons' fill='%23${primaryColor.slice(1)}' fill-opacity='1'%3E%3Cpath d='M13.99 9.25l13 7.5v15l-13 7.5L1 31.75v-15l12.99-7.5zM3 17.9v12.7l10.99 6.34 11-6.35V17.9l-11-6.34L3 17.9zM0 15l12.98-7.5V0h-2v6.35L0 12.69v2.3zm0 18.5L12.98 41v8h-2v-6.85L0 35.81v-2.3zM15 0v7.5L27.99 15H28v-2.31h-.01L17 6.35V0h-2zm0 49v-8l12.99-7.5H28v2.31h-.01L17 42.15V49h-2z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
+          }}
+        ></div>
         
         {/* Floating decorative elements */}
         <div className="absolute top-1/4 right-1/4 w-16 h-16 opacity-10 parallax" data-speed="0.06">
@@ -94,9 +101,9 @@ const Hero = () => {
       <div className="container relative z-10">
         <div className="max-w-3xl mx-auto text-center">
           <div 
-            className="inline-block mb-3 px-3 py-1 text-primary text-xs font-medium rounded-full animate-fade-in backdrop-blur-sm"
+            className="inline-block mb-3 px-3 py-1 text-xs font-medium rounded-full animate-fade-in backdrop-blur-sm"
             style={{ 
-              backgroundColor: `${primaryColor}10`,
+              backgroundColor: `${primaryColor}20`,
               color: primaryColor,
               borderColor: `${primaryColor}40`,
               border: '1px solid'
@@ -124,27 +131,27 @@ const Hero = () => {
             </Link>
             <Link
               to="/storytelling"
-              className="inline-flex items-center px-6 py-3 text-base font-medium bg-[#f8f8f8] text-[#333] border rounded-lg hover:bg-[#f0f0f0] transition-all duration-300"
-              style={{ borderColor: `${secondaryColor}40` }}
+              className="inline-flex items-center px-6 py-3 text-base font-medium bg-white/80 backdrop-blur-sm rounded-lg hover:bg-white/90 transition-all duration-300 shadow-sm"
+              style={{ color: secondaryColor, borderColor: `${secondaryColor}40`, border: '1px solid' }}
             >
               Listen to Stories
             </Link>
           </div>
           
           <div className="mt-16 grid grid-cols-2 sm:grid-cols-4 gap-8 text-center animate-fade-in" style={{ animationDelay: '0.5s' }}>
-            <div className="flex flex-col items-center parallax" data-speed="0.04">
+            <div className="flex flex-col items-center parallax p-4 rounded-lg bg-white/60 backdrop-blur-sm shadow-sm" data-speed="0.04">
               <span className="text-3xl font-bold" style={{ color: primaryColor }}>{metrics.articlesCount}+</span>
               <span className="text-sm text-muted-foreground mt-1">Tech Articles</span>
             </div>
-            <div className="flex flex-col items-center parallax" data-speed="0.04">
+            <div className="flex flex-col items-center parallax p-4 rounded-lg bg-white/60 backdrop-blur-sm shadow-sm" data-speed="0.04">
               <span className="text-3xl font-bold" style={{ color: primaryColor }}>{metrics.clientProjects}+</span>
               <span className="text-sm text-muted-foreground mt-1">Client Projects</span>
             </div>
-            <div className="flex flex-col items-center parallax" data-speed="0.04">
+            <div className="flex flex-col items-center parallax p-4 rounded-lg bg-white/60 backdrop-blur-sm shadow-sm" data-speed="0.04">
               <span className="text-3xl font-bold" style={{ color: primaryColor }}>{metrics.storiesShared}+</span>
               <span className="text-sm text-muted-foreground mt-1">Stories Shared</span>
             </div>
-            <div className="flex flex-col items-center parallax" data-speed="0.04">
+            <div className="flex flex-col items-center parallax p-4 rounded-lg bg-white/60 backdrop-blur-sm shadow-sm" data-speed="0.04">
               <span className="text-3xl font-bold" style={{ color: primaryColor }}>{metrics.monthlyReaders.toLocaleString()}+</span>
               <span className="text-sm text-muted-foreground mt-1">Monthly Readers</span>
             </div>
