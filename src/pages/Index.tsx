@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/button';
 // Mock data for featured articles
 const featuredArticles = [
   {
-    id: '1',
+    _id: '1', // Changed from id to _id to match ArticleCardProps
     title: 'The Future of AI in Indian Healthcare Systems',
     excerpt: 'How artificial intelligence is revolutionizing healthcare delivery across urban and rural India.',
     imageUrl: 'https://images.unsplash.com/photo-1576091160550-2173dba999ef?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1674&q=80',
@@ -21,7 +21,7 @@ const featuredArticles = [
     date: 'May 15, 2023'
   },
   {
-    id: '2',
+    _id: '2', // Changed from id to _id to match ArticleCardProps
     title: 'Building Sustainable Smart Cities: The Bangalore Model',
     excerpt: 'How India\'s tech capital is implementing green technology for urban development and sustainability.',
     imageUrl: 'https://images.unsplash.com/photo-1599930113854-d6d7fd522214?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1674&q=80',
@@ -30,7 +30,7 @@ const featuredArticles = [
     date: 'June 2, 2023'
   },
   {
-    id: '3',
+    _id: '3', // Changed from id to _id to match ArticleCardProps
     title: 'The Rise of FinTech Startups in Tier-2 Indian Cities',
     excerpt: 'How financial technology is creating economic opportunities beyond metropolitan areas.',
     imageUrl: 'https://images.unsplash.com/photo-1601597111158-2fceff292cdc?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1674&q=80',
@@ -196,8 +196,14 @@ const Index = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {featuredArticles.map((article, index) => (
               <ArticleCard
-                key={article.id}
-                {...article}
+                key={article._id}
+                _id={article._id}
+                title={article.title}
+                excerpt={article.excerpt}
+                imageUrl={article.imageUrl}
+                category={article.category}
+                readTime={article.readTime}
+                date={article.date}
                 delay={index * 0.1}
               />
             ))}
