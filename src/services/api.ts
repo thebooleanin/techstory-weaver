@@ -2,7 +2,7 @@
 import { Story, StoryFormData } from '@/types/story';
 
 // Base URL from environment or fallback
-const API_BASE_URL = 'http://localhost:5000/api';
+const API_BASE_URL = 'http://13.232.139.240:5000/api';
 
 // Fetch all stories
 export const fetchStories = async (customUrl?: string): Promise<Story[]> => {

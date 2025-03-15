@@ -26,7 +26,7 @@ const StoryDetail = () => {
   }, []);
 
   // Get API URL from config or use default
-  const apiUrl = siteConfig?.apiEndpoints?.stories || 'http://localhost:5000/api/stories';
+  const apiUrl = siteConfig?.apiEndpoints?.stories || 'http://13.232.139.240:5000/api/stories';
 
   const { data: story, isLoading, error } = useQuery({
     queryKey: ['story', id],

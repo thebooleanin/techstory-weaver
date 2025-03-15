@@ -20,7 +20,7 @@ const ArticleDetail = () => {
     // Fetch article details from the API
     const fetchArticle = async () => {
       try {
-        const response = await fetch(`http://localhost:5000/api/articles/${id}`);
+        const response = await fetch(`http://13.232.139.240:5000/api/articles/${id}`);
         if (!response.ok) {
           throw new Error('Article not found');
         }
@@ -29,7 +29,7 @@ const ArticleDetail = () => {
 
         // Fetch related articles from the same category
         const relatedResponse = await fetch(
-          `http://localhost:5000/api/articles?category=${data.category}&limit=3`
+          `http://13.232.139.240:5000/api/articles?category=${data.category}&limit=3`
         );
         const relatedData = await relatedResponse.json();
         setRelatedArticles(relatedData.data.filter((a: any) => a.id !== id));
