@@ -1,1072 +1,578 @@
 
-import { useState, useEffect, useRef } from 'react';
-import { useToast } from '@/hooks/use-toast';
+import { useState, useEffect } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { z } from 'zod';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
+import { Separator } from '@/components/ui/separator';
+import { toast } from '@/hooks/use-toast';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
 import {
-  Table, TableBody, TableCell, TableHead,
-  TableHeader, TableRow,
-} from '@/components/ui/table';
-import {
-  Select, SelectContent, SelectItem,
-  SelectTrigger, SelectValue,
-} from '@/components/ui/select';
-import {
-  Dialog, DialogContent, DialogDescription,
-  DialogFooter, DialogHeader, DialogTitle, DialogTrigger,
-} from '@/components/ui/dialog';
-import {
-  AlertDialog, AlertDialogAction, AlertDialogCancel,
-  AlertDialogContent, AlertDialogDescription, AlertDialogFooter,
-  AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import {
-  Pencil, Trash2, CheckCircle, X, Search, Eye, Star, RefreshCw, FileAudio, Music,
-  Loader2, Upload, AlertCircle,
+  Pencil,
+  Trash2,
+  Plus,
+  RefreshCw,
+  Calendar,
+  Headphones,
+  Clock,
+  Eye,
+  User,
+  Bookmark,
+  Tag,
 } from 'lucide-react';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Story } from '@/types/story';
 import { fetchStories, createStory, updateStory, deleteStory } from '@/services/api';
+import { Story, StoryFormData } from '@/types/story';
 
-// Categories with Indian context
-const categories = [
-  'Technology', 'Entrepreneurship', 'Sustainability',
-  'Healthcare', 'Education', 'Lifestyle', 'Indian Startups',
-  'Digital India', 'Innovation', 'Rural Development',
+// Form schema for story creation and editing
+const storyFormSchema = z.object({
+  title: z.string().min(3, { message: 'Title must be at least 3 characters long' }),
+  author: z.string().min(2, { message: 'Author name is required' }),
+  category: z.string().min(1, { message: 'Category is required' }),
+  duration: z.string().min(1, { message: 'Duration is required' }),
+  date: z.string().min(1, { message: 'Date is required' }),
+  description: z.string().optional(),
+  featured: z.boolean().optional(),
+  image: z.instanceof(File).optional(),
+  audioSrc: z.instanceof(File).optional(),
+});
+
+type StoryFormValues = z.infer<typeof storyFormSchema>;
+
+const categoryOptions = [
+  'Technology',
+  'Innovation',
+  'Startups',
+  'AI',
+  'Blockchain',
+  'IoT',
+  'Digital Transformation',
+  'Cybersecurity',
+  'FinTech',
+  'EdTech',
+  'HealthTech',
+  'Sustainability',
 ];
 
 const StorytellingManagement = () => {
-  const [stories, setStories] = useState<Story[]>([]);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [categoryFilter, setCategoryFilter] = useState('all');
-  const [statusFilter, setStatusFilter] = useState('all');
+  const [siteConfig, setSiteConfig] = useState<any>(null);
   const [editingStory, setEditingStory] = useState<Story | null>(null);
-  const [isCreatingStory, setIsCreatingStory] = useState(false);
-  const [newStory, setNewStory] = useState<Partial<Story>>({
-    title: '',
-    author: '',
-    category: 'Technology',
-    duration: '',
-    date: new Date().toISOString().split('T')[0],
-    description: '',
-    featured: false,
-    status: 'pending',
-  });
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [apiUrl, setApiUrl] = useState('http://localhost:5000/api/stories');
+  const [deleteStoryId, setDeleteStoryId] = useState<string | null>(null);
   
-  const { toast } = useToast();
-  const [isPlaying, setIsPlaying] = useState<string | null>(null);
-  const audioFileRef = useRef<HTMLInputElement>(null);
-  const imageFileRef = useRef<HTMLInputElement>(null);
-  const newAudioFileRef = useRef<HTMLInputElement>(null);
-  const newImageFileRef = useRef<HTMLInputElement>(null);
-
-  // Load stories on component mount
+  // Get QueryClient from the context
+  const queryClient = useQueryClient();
+  
   useEffect(() => {
-    const loadStories = async () => {
-      try {
-        setIsLoading(true);
-        setError(null);
-        
-        // Try to get API URL from site config
-        const siteConfig = localStorage.getItem('siteConfig');
-        if (siteConfig) {
-          const config = JSON.parse(siteConfig);
-          if (config?.apiEndpoints?.stories) {
-            setApiUrl(config.apiEndpoints.stories);
-          }
-        }
-        
-        const fetchedStories = await fetchStories(apiUrl);
-        setStories(fetchedStories);
-      } catch (err) {
-        setError('Failed to load stories. Please check your API endpoint configuration.');
-        console.error('Error loading stories:', err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    loadStories();
-  }, [apiUrl]);
-
-  // Filter stories based on search term and filters
-  const filteredStories = stories.filter((story) => {
-    const matchesSearch =
-      story.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      story.author.toLowerCase().includes(searchTerm.toLowerCase());
-
-    // Handle "all" for category filter
-    const matchesCategory =
-      categoryFilter === 'all' ? true : story.category === categoryFilter;
-
-    // Handle "all" for status filter
-    const matchesStatus =
-      statusFilter === 'all' ? true : story.status === statusFilter;
-
-    return matchesSearch && matchesCategory && matchesStatus;
+    // Load site config from localStorage
+    const config = localStorage.getItem('siteConfig');
+    if (config) {
+      setSiteConfig(JSON.parse(config));
+    }
+  }, []);
+  
+  // Get API URL from config or use default
+  const apiUrl = siteConfig?.apiEndpoints?.stories || 'http://localhost:5000/api/stories';
+  
+  // Form for creating/editing stories
+  const form = useForm<StoryFormValues>({
+    resolver: zodResolver(storyFormSchema),
+    defaultValues: {
+      title: '',
+      author: '',
+      category: '',
+      duration: '',
+      date: new Date().toISOString().split('T')[0],
+      description: '',
+      featured: false,
+    },
   });
-
-  const handleUpdateStory = async () => {
-    if (!editingStory) return;
-
-    try {
-      setIsLoading(true);
-      
-      const formData = new FormData();
-      
-      // Add text fields to FormData
-      Object.entries(editingStory).forEach(([key, value]) => {
-        if (key !== '_id' && value !== undefined && key !== 'imageUrl' && key !== 'audioUrl') {
-          formData.append(key, value.toString());
-        }
-      });
-      
-      // Add file fields if present
-      if (imageFileRef.current?.files?.[0]) {
-        formData.append('image', imageFileRef.current.files[0]);
-      }
-      
-      if (audioFileRef.current?.files?.[0]) {
-        formData.append('audioSrc', audioFileRef.current.files[0]);
-      }
-      
-      const updatedStory = await updateStory(editingStory._id, formData, apiUrl);
-      
-      if (updatedStory) {
-        setStories(stories.map((story) =>
-          story._id === updatedStory._id ? updatedStory : story
-        ));
-        
-        toast({
-          title: 'Story updated',
-          description: 'The story has been updated successfully',
-        });
-        
-        setEditingStory(null);
-      } else {
-        toast({
-          title: 'Update failed',
-          description: 'Failed to update the story. Please try again.',
-          variant: 'destructive',
-        });
-      }
-    } catch (err) {
-      console.error('Error updating story:', err);
+  
+  // Query for fetching stories
+  const { data: stories = [], isLoading, error, refetch } = useQuery({
+    queryKey: ['stories'],
+    queryFn: () => fetchStories(apiUrl),
+    enabled: !!apiUrl,
+  });
+  
+  // Mutation for creating a story
+  const createMutation = useMutation({
+    mutationFn: (data: StoryFormData) => createStory(data, apiUrl),
+    onSuccess: () => {
       toast({
-        title: 'Update failed',
-        description: 'An error occurred while updating the story.',
-        variant: 'destructive',
+        title: "Success!",
+        description: "Story created successfully.",
       });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleDeleteStory = async (id: string) => {
-    try {
-      setIsLoading(true);
-      const success = await deleteStory(id, apiUrl);
-      
-      if (success) {
-        setStories(stories.filter((story) => story._id !== id));
-        
-        toast({
-          title: 'Story deleted',
-          description: 'The story has been deleted successfully',
-        });
-      } else {
-        toast({
-          title: 'Deletion failed',
-          description: 'Failed to delete the story. Please try again.',
-          variant: 'destructive',
-        });
-      }
-    } catch (err) {
-      console.error('Error deleting story:', err);
+      queryClient.invalidateQueries({ queryKey: ['stories'] });
+      form.reset();
+    },
+    onError: (error) => {
       toast({
-        title: 'Deletion failed',
-        description: 'An error occurred while deleting the story.',
-        variant: 'destructive',
+        title: "Error",
+        description: `Failed to create story: ${error.message}`,
+        variant: "destructive",
       });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleCreateStory = async () => {
-    try {
-      setIsLoading(true);
-      
-      // Validate required fields
-      if (!newStory.title || !newStory.author || !newStory.category) {
-        toast({
-          title: 'Missing required fields',
-          description: 'Please fill in all required fields.',
-          variant: 'destructive',
-        });
-        setIsLoading(false);
-        return;
-      }
-      
-      const formData = new FormData();
-      
-      // Add text fields to FormData
-      Object.entries(newStory).forEach(([key, value]) => {
-        if (value !== undefined) {
-          formData.append(key, value.toString());
-        }
-      });
-      
-      // Add file fields if present (required for creating a new story)
-      if (newImageFileRef.current?.files?.[0]) {
-        formData.append('image', newImageFileRef.current.files[0]);
-      } else {
-        toast({
-          title: 'Image required',
-          description: 'Please select an image for the story.',
-          variant: 'destructive',
-        });
-        setIsLoading(false);
-        return;
-      }
-      
-      if (newAudioFileRef.current?.files?.[0]) {
-        formData.append('audioSrc', newAudioFileRef.current.files[0]);
-      } else {
-        toast({
-          title: 'Audio required',
-          description: 'Please select an audio file for the story.',
-          variant: 'destructive',
-        });
-        setIsLoading(false);
-        return;
-      }
-      
-      const createdStory = await createStory(formData, apiUrl);
-      
-      if (createdStory) {
-        setStories([...stories, createdStory]);
-        
-        toast({
-          title: 'Story created',
-          description: 'The story has been created successfully',
-        });
-        
-        // Reset form and close modal
-        setNewStory({
-          title: '',
-          author: '',
-          category: 'Technology',
-          duration: '',
-          date: new Date().toISOString().split('T')[0],
-          description: '',
-          featured: false,
-          status: 'pending',
-        });
-        setIsCreatingStory(false);
-        
-        if (newImageFileRef.current) newImageFileRef.current.value = '';
-        if (newAudioFileRef.current) newAudioFileRef.current.value = '';
-      } else {
-        toast({
-          title: 'Creation failed',
-          description: 'Failed to create the story. Please try again.',
-          variant: 'destructive',
-        });
-      }
-    } catch (err) {
-      console.error('Error creating story:', err);
+    },
+  });
+  
+  // Mutation for updating a story
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: StoryFormData }) => 
+      updateStory(id, data, apiUrl),
+    onSuccess: () => {
       toast({
-        title: 'Creation failed',
-        description: 'An error occurred while creating the story.',
-        variant: 'destructive',
+        title: "Success!",
+        description: "Story updated successfully.",
       });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleApproveStory = async (id: string) => {
-    try {
-      setIsLoading(true);
-      const storyToUpdate = stories.find(story => story._id === id);
-      
-      if (!storyToUpdate) {
-        toast({
-          title: 'Story not found',
-          description: 'Unable to find the story to approve.',
-          variant: 'destructive',
-        });
-        return;
-      }
-      
-      const updatedStory = await updateStory(id, { status: 'published' }, apiUrl);
-      
-      if (updatedStory) {
-        setStories(stories.map((story) =>
-          story._id === id ? { ...story, status: 'published' } : story
-        ));
-        
-        toast({
-          title: 'Story approved',
-          description: 'The story has been approved and published',
-        });
-      } else {
-        toast({
-          title: 'Approval failed',
-          description: 'Failed to approve the story. Please try again.',
-          variant: 'destructive',
-        });
-      }
-    } catch (err) {
-      console.error('Error approving story:', err);
+      queryClient.invalidateQueries({ queryKey: ['stories'] });
+      setEditingStory(null);
+      form.reset();
+    },
+    onError: (error) => {
       toast({
-        title: 'Approval failed',
-        description: 'An error occurred while approving the story.',
-        variant: 'destructive',
+        title: "Error",
+        description: `Failed to update story: ${error.message}`,
+        variant: "destructive",
       });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleRejectStory = async (id: string) => {
-    try {
-      setIsLoading(true);
-      const storyToUpdate = stories.find(story => story._id === id);
-      
-      if (!storyToUpdate) {
-        toast({
-          title: 'Story not found',
-          description: 'Unable to find the story to reject.',
-          variant: 'destructive',
-        });
-        return;
-      }
-      
-      const updatedStory = await updateStory(id, { status: 'rejected' }, apiUrl);
-      
-      if (updatedStory) {
-        setStories(stories.map((story) =>
-          story._id === id ? { ...story, status: 'rejected' } : story
-        ));
-        
-        toast({
-          title: 'Story rejected',
-          description: 'The story has been rejected',
-        });
-      } else {
-        toast({
-          title: 'Rejection failed',
-          description: 'Failed to reject the story. Please try again.',
-          variant: 'destructive',
-        });
-      }
-    } catch (err) {
-      console.error('Error rejecting story:', err);
+    },
+  });
+  
+  // Mutation for deleting a story
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => deleteStory(id, apiUrl),
+    onSuccess: () => {
       toast({
-        title: 'Rejection failed',
-        description: 'An error occurred while rejecting the story.',
-        variant: 'destructive',
+        title: "Success!",
+        description: "Story deleted successfully.",
       });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleToggleFeatured = async (id: string) => {
-    try {
-      setIsLoading(true);
-      const storyToUpdate = stories.find(story => story._id === id);
-      
-      if (!storyToUpdate) {
-        toast({
-          title: 'Story not found',
-          description: 'Unable to find the story to update.',
-          variant: 'destructive',
-        });
-        return;
-      }
-      
-      const updatedFeaturedStatus = !storyToUpdate.featured;
-      
-      const updatedStory = await updateStory(id, { featured: updatedFeaturedStatus }, apiUrl);
-      
-      if (updatedStory) {
-        setStories(stories.map((story) =>
-          story._id === id ? { ...story, featured: updatedFeaturedStatus } : story
-        ));
-        
-        toast({
-          title: updatedFeaturedStatus ? 'Added to featured' : 'Removed from featured',
-          description: updatedFeaturedStatus
-            ? 'The story has been added to featured stories'
-            : 'The story has been removed from featured stories',
-        });
-      } else {
-        toast({
-          title: 'Update failed',
-          description: 'Failed to update the story. Please try again.',
-          variant: 'destructive',
-        });
-      }
-    } catch (err) {
-      console.error('Error updating featured status:', err);
+      queryClient.invalidateQueries({ queryKey: ['stories'] });
+      setDeleteStoryId(null);
+    },
+    onError: (error) => {
       toast({
-        title: 'Update failed',
-        description: 'An error occurred while updating the story.',
-        variant: 'destructive',
+        title: "Error",
+        description: `Failed to delete story: ${error.message}`,
+        variant: "destructive",
       });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Play/pause audio preview
-  const toggleAudioPreview = (id: string) => {
-    if (isPlaying === id) {
-      setIsPlaying(null);
+    },
+  });
+  
+  // Handle form submission
+  const onSubmit = (values: StoryFormValues) => {
+    if (editingStory) {
+      updateMutation.mutate({ id: editingStory._id, data: values });
     } else {
-      setIsPlaying(id);
+      createMutation.mutate(values);
     }
   };
-
-  const resetFilters = () => {
-    setSearchTerm('');
-    setCategoryFilter('all');
-    setStatusFilter('all');
+  
+  // Set form values when editing a story
+  useEffect(() => {
+    if (editingStory) {
+      form.reset({
+        title: editingStory.title,
+        author: editingStory.author,
+        category: editingStory.category,
+        duration: editingStory.duration,
+        date: editingStory.date,
+        description: editingStory.description || '',
+        featured: editingStory.featured || false,
+      });
+    }
+  }, [editingStory, form]);
+  
+  // Handle file input change
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>, field: 'image' | 'audioSrc') => {
+    const file = event.target.files?.[0];
+    if (file) {
+      form.setValue(field, file);
+    }
   };
-
+  
+  // Format date for display
+  const formatDate = (dateString: string) => {
+    try {
+      return new Date(dateString).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+      });
+    } catch (e) {
+      return dateString;
+    }
+  };
+  
+  // Handle cancel edit
+  const handleCancelEdit = () => {
+    setEditingStory(null);
+    form.reset();
+  };
+  
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold">Storytelling Management</h2>
-        <Button 
-          variant="default"
-          onClick={() => setIsCreatingStory(true)}
-          disabled={isLoading}
-        >
-          <FileAudio className="h-4 w-4 mr-2" />
-          Add New Story
-        </Button>
-      </div>
-
-      {error && (
-        <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      )}
-
-      <div className="flex items-center space-x-2">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search stories..."
-            className="pl-10"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
+        <div>
+          <h2 className="text-2xl font-bold">Storytelling Management</h2>
+          <p className="text-muted-foreground">Manage 5-minute audio stories from across India.</p>
         </div>
-        <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-          <SelectTrigger className="w-40">
-            <SelectValue placeholder="All Categories" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Categories</SelectItem>
-            {categories.map((category) => (
-              <SelectItem key={category} value={category}>
-                {category}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-40">
-            <SelectValue placeholder="All Statuses" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Statuses</SelectItem>
-            <SelectItem value="published">Published</SelectItem>
-            <SelectItem value="pending">Pending</SelectItem>
-            <SelectItem value="rejected">Rejected</SelectItem>
-          </SelectContent>
-        </Select>
-        <Button
-          variant="outline"
-          onClick={resetFilters}
+        <Button 
+          variant="outline" 
+          size="sm" 
+          onClick={() => refetch()}
           disabled={isLoading}
         >
-          <RefreshCw className="h-4 w-4 mr-2" />
-          Reset
+          <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+          Refresh
         </Button>
       </div>
-
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-12">
-                <Checkbox />
-              </TableHead>
-              <TableHead>Title</TableHead>
-              <TableHead>Author</TableHead>
-              <TableHead>Category</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Duration</TableHead>
-              <TableHead>Views</TableHead>
-              <TableHead>Audio</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {isLoading && stories.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={9} className="text-center py-8">
-                  <div className="flex flex-col items-center justify-center text-muted-foreground">
-                    <Loader2 className="h-8 w-8 animate-spin mb-2" />
-                    <p>Loading stories...</p>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ) : filteredStories.length > 0 ? (
-              filteredStories.map((story) => (
-                <TableRow key={story._id}>
-                  <TableCell>
-                    <Checkbox />
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <div>
-                        <div className="font-medium">{story.title}</div>
-                        <div className="text-xs text-muted-foreground">{story.date}</div>
-                      </div>
-                      {story.featured && (
-                        <div className="bg-amber-100 dark:bg-amber-900/20 text-amber-800 dark:text-amber-500 text-xs rounded-full px-2 py-0.5 flex items-center">
-                          <Star className="h-3 w-3 mr-1" fill="currentColor" />
-                          Featured
-                        </div>
-                      )}
-                    </div>
-                  </TableCell>
-                  <TableCell>{story.author}</TableCell>
-                  <TableCell>{story.category}</TableCell>
-                  <TableCell>
-                    <div className="flex items-center">
-                      {story.status === 'published' ? (
-                        <>
-                          <div className="h-2.5 w-2.5 rounded-full bg-green-500 mr-2"></div>
-                          <span>Published</span>
-                        </>
-                      ) : story.status === 'pending' ? (
-                        <>
-                          <div className="h-2.5 w-2.5 rounded-full bg-amber-500 mr-2"></div>
-                          <span>Pending</span>
-                        </>
-                      ) : (
-                        <>
-                          <div className="h-2.5 w-2.5 rounded-full bg-red-500 mr-2"></div>
-                          <span>Rejected</span>
-                        </>
-                      )}
-                    </div>
-                  </TableCell>
-                  <TableCell>{story.duration}</TableCell>
-                  <TableCell>{story.views ? story.views.toLocaleString() : '0'}</TableCell>
-                  <TableCell>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      title={isPlaying === story._id ? 'Pause' : 'Play Preview'}
-                      onClick={() => toggleAudioPreview(story._id)}
-                      disabled={!story.audioUrl}
-                    >
-                      <Music className={`h-4 w-4 ${isPlaying === story._id ? 'text-primary' : ''}`} />
-                    </Button>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end gap-1">
-                      {story.status === 'pending' && (
-                        <>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            title="Approve Story"
-                            onClick={() => handleApproveStory(story._id)}
-                            disabled={isLoading}
-                          >
-                            <CheckCircle className="h-4 w-4 text-green-500" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            title="Reject Story"
-                            onClick={() => handleRejectStory(story._id)}
-                            disabled={isLoading}
-                          >
-                            <X className="h-4 w-4 text-red-500" />
-                          </Button>
-                        </>
-                      )}
-
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        title={story.featured ? 'Remove from Featured' : 'Add to Featured'}
-                        onClick={() => handleToggleFeatured(story._id)}
-                        disabled={isLoading}
-                      >
-                        <Star className={`h-4 w-4 ${story.featured ? 'text-amber-500 fill-amber-500' : ''}`} />
-                      </Button>
-
-                      <Button variant="ghost" size="icon" title="View Story">
-                        <Eye className="h-4 w-4" />
-                      </Button>
-
-                      <Dialog>
-                        <DialogTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            title="Edit Story"
-                            onClick={() => setEditingStory(story)}
-                            disabled={isLoading}
-                          >
-                            <Pencil className="h-4 w-4" />
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent className="max-w-2xl">
-                          <DialogHeader>
-                            <DialogTitle>Edit Story</DialogTitle>
-                            <DialogDescription>
-                              Make changes to the storytelling content.
-                            </DialogDescription>
-                          </DialogHeader>
-
-                          {editingStory && (
-                            <div className="grid grid-cols-1 gap-6 py-4">
-                              <div className="space-y-2">
-                                <Label htmlFor="edit-story-title">Title</Label>
-                                <Input
-                                  id="edit-story-title"
-                                  value={editingStory.title}
-                                  onChange={(e) =>
-                                    setEditingStory({ ...editingStory, title: e.target.value })
-                                  }
-                                />
-                              </div>
-
-                              <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                  <Label htmlFor="edit-story-author">Author</Label>
-                                  <Input
-                                    id="edit-story-author"
-                                    value={editingStory.author}
-                                    onChange={(e) =>
-                                      setEditingStory({ ...editingStory, author: e.target.value })
-                                    }
-                                  />
-                                </div>
-                                <div className="space-y-2">
-                                  <Label htmlFor="edit-story-category">Category</Label>
-                                  <Select
-                                    value={editingStory.category}
-                                    onValueChange={(value) =>
-                                      setEditingStory({ ...editingStory, category: value })
-                                    }
-                                  >
-                                    <SelectTrigger id="edit-story-category">
-                                      <SelectValue placeholder="Select category" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      {categories.map((category) => (
-                                        <SelectItem key={category} value={category}>
-                                          {category}
-                                        </SelectItem>
-                                      ))}
-                                    </SelectContent>
-                                  </Select>
-                                </div>
-                              </div>
-
-                              <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                  <Label htmlFor="edit-story-status">Status</Label>
-                                  <Select
-                                    value={editingStory.status || 'pending'}
-                                    onValueChange={(value: 'published' | 'pending' | 'rejected') =>
-                                      setEditingStory({ ...editingStory, status: value })
-                                    }
-                                  >
-                                    <SelectTrigger id="edit-story-status">
-                                      <SelectValue placeholder="Select status" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      <SelectItem value="published">Published</SelectItem>
-                                      <SelectItem value="pending">Pending</SelectItem>
-                                      <SelectItem value="rejected">Rejected</SelectItem>
-                                    </SelectContent>
-                                  </Select>
-                                </div>
-                                <div className="space-y-2">
-                                  <Label htmlFor="edit-story-featured">Featured Story</Label>
-                                  <div className="flex items-center h-10 space-x-2">
-                                    <Checkbox
-                                      id="edit-story-featured"
-                                      checked={editingStory.featured || false}
-                                      onCheckedChange={(checked) =>
-                                        setEditingStory({ ...editingStory, featured: !!checked })
-                                      }
-                                    />
-                                    <label
-                                      htmlFor="edit-story-featured"
-                                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                                    >
-                                      Feature this story on the homepage
-                                    </label>
-                                  </div>
-                                </div>
-                              </div>
-
-                              <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                  <Label htmlFor="edit-story-date">Date</Label>
-                                  <Input
-                                    id="edit-story-date"
-                                    type="date"
-                                    value={editingStory.date ? editingStory.date.split('T')[0] : ''}
-                                    onChange={(e) =>
-                                      setEditingStory({ ...editingStory, date: e.target.value })
-                                    }
-                                  />
-                                </div>
-                                <div className="space-y-2">
-                                  <Label htmlFor="edit-story-duration">Duration (e.g., 5:30)</Label>
-                                  <Input
-                                    id="edit-story-duration"
-                                    value={editingStory.duration}
-                                    onChange={(e) =>
-                                      setEditingStory({ ...editingStory, duration: e.target.value })
-                                    }
-                                    placeholder="5:30"
-                                  />
-                                </div>
-                              </div>
-
-                              <div className="space-y-2">
-                                <Label>Image</Label>
-                                <div className="border rounded-md p-4 bg-muted/30">
-                                  {editingStory.imageUrl && (
-                                    <div className="mb-3">
-                                      <img 
-                                        src={editingStory.imageUrl} 
-                                        alt={editingStory.title}
-                                        className="h-32 object-cover rounded-md mx-auto"
-                                      />
-                                    </div>
-                                  )}
-                                  <Input
-                                    type="file"
-                                    ref={imageFileRef}
-                                    accept="image/*"
-                                    className="mb-3"
-                                  />
-                                  <p className="text-xs text-muted-foreground">
-                                    Upload a new image to replace the current one.
-                                  </p>
-                                </div>
-                              </div>
-
-                              <div className="space-y-2">
-                                <Label>Audio Content</Label>
-                                <div className="border rounded-md p-4 bg-muted/30">
-                                  {editingStory.audioUrl && (
-                                    <audio
-                                      controls
-                                      src={editingStory.audioUrl}
-                                      className="w-full mb-3"
-                                    />
-                                  )}
-                                  <Input
-                                    type="file"
-                                    ref={audioFileRef}
-                                    accept="audio/*"
-                                    className="mb-3"
-                                  />
-                                  <p className="text-xs text-muted-foreground">
-                                    Upload a new audio file to replace the current one.
-                                  </p>
-                                </div>
-                              </div>
-
-                              <div className="space-y-2">
-                                <Label htmlFor="edit-story-description">Description</Label>
-                                <Textarea
-                                  id="edit-story-description"
-                                  placeholder="Story description or transcript"
-                                  className="h-32"
-                                  value={editingStory.description || ''}
-                                  onChange={(e) =>
-                                    setEditingStory({ ...editingStory, description: e.target.value })
-                                  }
-                                />
-                              </div>
+      
+      <Tabs defaultValue="stories" className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="stories">All Stories</TabsTrigger>
+          <TabsTrigger value="create">{editingStory ? 'Edit Story' : 'Create New Story'}</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="stories" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Stories Library</CardTitle>
+              <CardDescription>
+                Manage your tech storytelling content.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {isLoading ? (
+                <div className="flex justify-center py-8">
+                  <RefreshCw className="h-8 w-8 animate-spin text-muted-foreground" />
+                </div>
+              ) : error ? (
+                <div className="p-8 text-center text-destructive">
+                  <p>Error loading stories. Please try again.</p>
+                </div>
+              ) : stories.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  <p className="mb-4">No stories found.</p>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => document.querySelector('[data-state="inactive"][value="create"]')?.click()}
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Create your first story
+                  </Button>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Title</TableHead>
+                        <TableHead>Category</TableHead>
+                        <TableHead>Author</TableHead>
+                        <TableHead>Duration</TableHead>
+                        <TableHead>Date</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {stories.map((story) => (
+                        <TableRow key={story._id}>
+                          <TableCell className="font-medium">
+                            <div className="flex items-center space-x-2">
+                              {story.featured && (
+                                <Bookmark className="h-3 w-3 text-amber-500" />
+                              )}
+                              <span className="truncate max-w-[200px]">{story.title}</span>
                             </div>
-                          )}
-
-                          <DialogFooter>
-                            <Button variant="outline" onClick={() => setEditingStory(null)} disabled={isLoading}>
-                              Cancel
-                            </Button>
-                            <Button onClick={handleUpdateStory} disabled={isLoading}>
-                              {isLoading ? (
-                                <>
-                                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                  Saving...
-                                </>
-                              ) : (
-                                'Save Changes'
-                              )}
-                            </Button>
-                          </DialogFooter>
-                        </DialogContent>
-                      </Dialog>
-
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button variant="ghost" size="icon" title="Delete Story" disabled={isLoading}>
-                            <Trash2 className="h-4 w-4 text-destructive" />
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Delete Story</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              Are you sure you want to delete this story? This action cannot be
-                              undone.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel disabled={isLoading}>Cancel</AlertDialogCancel>
-                            <AlertDialogAction
-                              onClick={() => handleDeleteStory(story._id)}
-                              className="bg-destructive text-destructive-foreground"
-                              disabled={isLoading}
-                            >
-                              {isLoading ? (
-                                <>
-                                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                  Deleting...
-                                </>
-                              ) : (
-                                'Delete'
-                              )}
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="secondary" className="truncate max-w-[100px]">
+                              {story.category}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>{story.author}</TableCell>
+                          <TableCell>{story.duration}</TableCell>
+                          <TableCell>{formatDate(story.date)}</TableCell>
+                          <TableCell>
+                            <Badge className={
+                              story.status === 'published' ? 'bg-green-500' :
+                              story.status === 'pending' ? 'bg-amber-500' :
+                              story.status === 'rejected' ? 'bg-red-500' : 
+                              'bg-slate-500'
+                            }>
+                              {story.status || 'published'}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex justify-end space-x-2">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => setEditingStory(story)}
+                              >
+                                <Pencil className="h-4 w-4" />
+                                <span className="sr-only">Edit</span>
+                              </Button>
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="text-destructive hover:text-destructive/90"
+                                    onClick={() => setDeleteStoryId(story._id)}
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                    <span className="sr-only">Delete</span>
+                                  </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>Confirm Deletion</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      Are you sure you want to delete "{story.title}"? This action cannot be undone.
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel onClick={() => setDeleteStoryId(null)}>
+                                      Cancel
+                                    </AlertDialogCancel>
+                                    <AlertDialogAction 
+                                      onClick={() => deleteMutation.mutate(story._id)}
+                                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                    >
+                                      Delete
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="create" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>{editingStory ? 'Edit Story' : 'Create New Story'}</CardTitle>
+              <CardDescription>
+                {editingStory ? 'Update the details of an existing story.' : 'Add a new 5-minute tech story.'}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <FormField
+                      control={form.control}
+                      name="title"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Story Title</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Enter story title" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={form.control}
+                      name="author"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Author</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Author name" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={form.control}
+                      name="category"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Category</FormLabel>
+                          <Select 
+                            onValueChange={field.onChange} 
+                            defaultValue={field.value}
+                            value={field.value}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select a category" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {categoryOptions.map((category) => (
+                                <SelectItem key={category} value={category}>
+                                  {category}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={form.control}
+                      name="duration"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Duration</FormLabel>
+                          <FormControl>
+                            <Input placeholder="e.g. 5:30" {...field} />
+                          </FormControl>
+                          <FormDescription>Format: minutes:seconds</FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={form.control}
+                      name="date"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Publication Date</FormLabel>
+                          <FormControl>
+                            <Input type="date" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={form.control}
+                      name="featured"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                          <div className="space-y-0.5">
+                            <FormLabel className="text-base">Featured Story</FormLabel>
+                            <FormDescription>
+                              Display this story prominently on the homepage
+                            </FormDescription>
+                          </div>
+                          <FormControl>
+                            <Switch
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  
+                  <FormField
+                    control={form.control}
+                    name="description"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Description</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="Enter a brief description of the story"
+                            className="min-h-[120px]"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <Separator />
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <FormLabel htmlFor="image">Story Image</FormLabel>
+                      <div className="mt-2">
+                        <Input
+                          id="image"
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => handleFileChange(e, 'image')}
+                        />
+                      </div>
+                      <p className="text-sm text-muted-foreground mt-2">
+                        Upload a cover image for the story (JPG, PNG, max 5MB)
+                      </p>
                     </div>
-                  </TableCell>
-                </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell colSpan={9} className="text-center py-8">
-                  <div className="flex flex-col items-center justify-center text-muted-foreground">
-                    <p>No stories found</p>
-                    {(searchTerm || categoryFilter !== 'all' || statusFilter !== 'all') && (
+                    
+                    <div>
+                      <FormLabel htmlFor="audioSrc">Audio File</FormLabel>
+                      <div className="mt-2">
+                        <Input
+                          id="audioSrc"
+                          type="file"
+                          accept="audio/*"
+                          onChange={(e) => handleFileChange(e, 'audioSrc')}
+                        />
+                      </div>
+                      <p className="text-sm text-muted-foreground mt-2">
+                        Upload the audio recording (MP3, max 15MB)
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex justify-end space-x-4">
+                    {editingStory && (
                       <Button
-                        variant="link"
-                        onClick={resetFilters}
+                        type="button"
+                        variant="outline"
+                        onClick={handleCancelEdit}
                       >
-                        Clear filters
+                        Cancel
                       </Button>
                     )}
+                    <Button
+                      type="submit"
+                      disabled={createMutation.isPending || updateMutation.isPending}
+                    >
+                      {(createMutation.isPending || updateMutation.isPending) && (
+                        <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                      )}
+                      {editingStory ? 'Update Story' : 'Create Story'}
+                    </Button>
                   </div>
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </div>
-
-      {/* Create Story Dialog */}
-      <Dialog open={isCreatingStory} onOpenChange={setIsCreatingStory}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Add New Story</DialogTitle>
-            <DialogDescription>
-              Create a new storytelling entry. Audio files and images are required.
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="grid grid-cols-1 gap-6 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="new-story-title">Title*</Label>
-              <Input
-                id="new-story-title"
-                value={newStory.title}
-                onChange={(e) =>
-                  setNewStory({ ...newStory, title: e.target.value })
-                }
-                required
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="new-story-author">Author*</Label>
-                <Input
-                  id="new-story-author"
-                  value={newStory.author}
-                  onChange={(e) =>
-                    setNewStory({ ...newStory, author: e.target.value })
-                  }
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="new-story-category">Category*</Label>
-                <Select
-                  value={newStory.category}
-                  onValueChange={(value) =>
-                    setNewStory({ ...newStory, category: value })
-                  }
-                >
-                  <SelectTrigger id="new-story-category">
-                    <SelectValue placeholder="Select category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {categories.map((category) => (
-                      <SelectItem key={category} value={category}>
-                        {category}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="new-story-date">Date*</Label>
-                <Input
-                  id="new-story-date"
-                  type="date"
-                  value={newStory.date}
-                  onChange={(e) =>
-                    setNewStory({ ...newStory, date: e.target.value })
-                  }
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="new-story-duration">Duration* (e.g., 5:30)</Label>
-                <Input
-                  id="new-story-duration"
-                  value={newStory.duration}
-                  onChange={(e) =>
-                    setNewStory({ ...newStory, duration: e.target.value })
-                  }
-                  placeholder="5:30"
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="new-story-description">Description</Label>
-              <Textarea
-                id="new-story-description"
-                placeholder="Story description or transcript"
-                className="h-32"
-                value={newStory.description}
-                onChange={(e) =>
-                  setNewStory({ ...newStory, description: e.target.value })
-                }
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="new-story-featured">Featured Story</Label>
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="new-story-featured"
-                  checked={newStory.featured}
-                  onCheckedChange={(checked) =>
-                    setNewStory({ ...newStory, featured: !!checked })
-                  }
-                />
-                <label
-                  htmlFor="new-story-featured"
-                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                >
-                  Feature this story on the homepage
-                </label>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Image Upload* (Required)</Label>
-              <div className="border rounded-md p-4 bg-muted/30">
-                <Input
-                  type="file"
-                  ref={newImageFileRef}
-                  accept="image/*"
-                  required
-                />
-                <p className="text-xs text-muted-foreground mt-2">
-                  Upload an image for the story. Recommended size: 800x600px.
-                </p>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Audio Upload* (Required)</Label>
-              <div className="border rounded-md p-4 bg-muted/30">
-                <Input
-                  type="file"
-                  ref={newAudioFileRef}
-                  accept="audio/*"
-                  required
-                />
-                <p className="text-xs text-muted-foreground mt-2">
-                  Upload an audio file for the story. Supported formats: MP3, WAV, OGG.
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <DialogFooter>
-            <Button 
-              variant="outline" 
-              onClick={() => setIsCreatingStory(false)}
-              disabled={isLoading}
-            >
-              Cancel
-            </Button>
-            <Button 
-              onClick={handleCreateStory}
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Creating...
-                </>
-              ) : (
-                'Create Story'
-              )}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+                </form>
+              </Form>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };

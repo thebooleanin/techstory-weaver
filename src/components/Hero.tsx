@@ -48,17 +48,24 @@ const Hero = () => {
     monthlyReaders: siteConfig?.metrics?.monthlyReaders || 10000,
   };
 
-  // Modern vibrant color scheme
-  const primaryColor = siteConfig?.colors?.primary || '#6366F1'; // Indigo
-  const secondaryColor = siteConfig?.colors?.secondary || '#EC4899'; // Pink
-  const accentColor = siteConfig?.colors?.accent || '#8B5CF6'; // Purple
+  // Modern vibrant color scheme - updated colors
+  const primaryColor = siteConfig?.colors?.primary || '#8B5CF6'; // Vivid Purple
+  const secondaryColor = siteConfig?.colors?.secondary || '#D946EF'; // Magenta Pink
+  const accentColor = siteConfig?.colors?.accent || '#F97316'; // Bright Orange
 
   return (
     <div ref={heroRef} className="relative overflow-hidden pt-20 pb-16 sm:pb-32 min-h-[90vh] flex items-center">
-      {/* Modern aesthetic background with gradients and patterns */}
+      {/* Enhanced modern aesthetic background with gradients and patterns */}
       <div className="absolute inset-0 z-0">
-        {/* Gradient background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50"></div>
+        {/* Gradient background - updated with more vibrant colors */}
+        <div className="absolute inset-0 bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50"></div>
+        
+        {/* Abstract shapes in background */}
+        <div className="absolute inset-0 opacity-[0.07]">
+          <svg width="100%" height="100%" viewBox="0 0 2000 1000" xmlns="http://www.w3.org/2000/svg">
+            <path fill={primaryColor} d="M0,288L48,272C96,256,192,224,288,197.3C384,171,480,149,576,165.3C672,181,768,235,864,250.7C960,267,1056,245,1152,250.7C1248,256,1344,288,1392,304L1440,320L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"></path>
+          </svg>
+        </div>
         
         {/* Colorful gradient orbs */}
         <div 
@@ -77,12 +84,13 @@ const Hero = () => {
           data-speed="0.08"
         ></div>
         
-        {/* Modern geometric patterns - hexagon grid */}
-        <div className="absolute inset-0 opacity-[0.03]" 
-          style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='49' viewBox='0 0 28 49'%3E%3Cg fill-rule='evenodd'%3E%3Cg id='hexagons' fill='%23${primaryColor.slice(1)}' fill-opacity='1'%3E%3Cpath d='M13.99 9.25l13 7.5v15l-13 7.5L1 31.75v-15l12.99-7.5zM3 17.9v12.7l10.99 6.34 11-6.35V17.9l-11-6.34L3 17.9zM0 15l12.98-7.5V0h-2v6.35L0 12.69v2.3zm0 18.5L12.98 41v8h-2v-6.85L0 35.81v-2.3zM15 0v7.5L27.99 15H28v-2.31h-.01L17 6.35V0h-2zm0 49v-8l12.99-7.5H28v2.31h-.01L17 42.15V49h-2z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
-          }}
-        ></div>
+        {/* Modern mesh gradient */}
+        <div className="absolute inset-0 opacity-30 mix-blend-overlay">
+          <div className="absolute inset-0" style={{ 
+            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 2000 1500' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3CradialGradient id='a' gradientUnits='objectBoundingBox'%3E%3Cstop offset='0' stop-color='%23${primaryColor.slice(1)}'/%3E%3Cstop offset='1' stop-color='%23${secondaryColor.slice(1)}'/%3E%3C/radialGradient%3E%3ClinearGradient id='b' gradientUnits='userSpaceOnUse' x1='0' y1='750' x2='1550' y2='750'%3E%3Cstop offset='0' stop-color='%23${primaryColor.slice(1)}'/%3E%3Cstop offset='1' stop-color='%23${secondaryColor.slice(1)}'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='2000' height='1500' fill='url(%23a)'/%3E%3Cg fill-opacity='0.5'%3E%3Cpolygon fill='url(%23b)' points='1600 1500 0 1500 0 0 1600 0'/%3E%3C/g%3E%3C/svg%3E")`,
+            backgroundSize: 'cover'
+          }}></div>
+        </div>
         
         {/* Floating decorative elements */}
         <div className="absolute top-1/4 right-1/4 w-16 h-16 opacity-10 parallax" data-speed="0.06">

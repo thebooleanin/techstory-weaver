@@ -13,3 +13,16 @@ export interface Story {
   status?: 'published' | 'pending' | 'rejected';
   views?: number;
 }
+
+// Form data interface for creating/updating stories
+export interface StoryFormData {
+  title: string;
+  author: string;
+  duration: string;
+  category: string;
+  date: string;
+  description?: string;
+  featured?: boolean;
+  image?: File;
+  audioSrc?: File;
+}
