@@ -77,6 +77,7 @@ const StorytellingManagement = () => {
   const [siteConfig, setSiteConfig] = useState<any>(null);
   const [editingStory, setEditingStory] = useState<Story | null>(null);
   const [deleteStoryId, setDeleteStoryId] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState('stories');
   
   const queryClient = useQueryClient();
   
@@ -86,8 +87,6 @@ const StorytellingManagement = () => {
       setSiteConfig(JSON.parse(config));
     }
   }, []);
-  
-  const apiUrl = siteConfig?.apiEndpoints?.stories || undefined;
   
   const form = useForm<StoryFormValues>({
     resolver: zodResolver(storyFormSchema),
@@ -106,11 +105,13 @@ const StorytellingManagement = () => {
   
   const { data: stories = [], isLoading, error, refetch } = useQuery({
     queryKey: ['stories'],
-    queryFn: () => fetchStories(1, 10, apiUrl),
+    queryFn: () => fetchStories(1, 10),
+    retry: 1,
+    refetchOnWindowFocus: false,
   });
   
   const createMutation = useMutation({
-    mutationFn: (data: StoryFormData) => createStory(data, apiUrl),
+    mutationFn: (data: StoryFormData) => createStory(data),
     onSuccess: () => {
       toast({
         title: "Success!",
@@ -118,6 +119,7 @@ const StorytellingManagement = () => {
       });
       queryClient.invalidateQueries({ queryKey: ['stories'] });
       form.reset();
+      setActiveTab('stories');
     },
     onError: (error) => {
       toast({
@@ -130,7 +132,7 @@ const StorytellingManagement = () => {
   
   const updateMutation = useMutation({
     mutationFn: ({ id, data }: { id: string; data: StoryFormData }) => 
-      updateStory(id, data, apiUrl),
+      updateStory(id, data),
     onSuccess: () => {
       toast({
         title: "Success!",
@@ -139,6 +141,7 @@ const StorytellingManagement = () => {
       queryClient.invalidateQueries({ queryKey: ['stories'] });
       setEditingStory(null);
       form.reset();
+      setActiveTab('stories');
     },
     onError: (error) => {
       toast({
@@ -150,7 +153,7 @@ const StorytellingManagement = () => {
   });
   
   const deleteMutation = useMutation({
-    mutationFn: (id: string) => deleteStory(id, apiUrl),
+    mutationFn: (id: string) => deleteStory(id),
     onSuccess: () => {
       toast({
         title: "Success!",
@@ -229,9 +232,18 @@ const StorytellingManagement = () => {
   };
 
   const handleCreateTabClick = () => {
-    const createTab = document.querySelector('[data-state="inactive"][value="create"]');
-    if (createTab && createTab instanceof HTMLElement) {
-      createTab.click();
+    setActiveTab('create');
+  };
+
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
+    
+    if (value === 'create' && editingStory) {
+      // If switching to create tab while editing, update the form fields
+    } else if (value === 'stories') {
+      // If switching to stories tab, reset editing state
+      setEditingStory(null);
+      form.reset();
     }
   };
   
@@ -253,7 +265,7 @@ const StorytellingManagement = () => {
         </Button>
       </div>
       
-      <Tabs defaultValue="stories" className="w-full">
+      <Tabs value={activeTab} onValueChange={handleTabChange}>
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="stories">All Stories</TabsTrigger>
           <TabsTrigger value="create">{editingStory ? 'Edit Story' : 'Create New Story'}</TabsTrigger>
@@ -335,7 +347,10 @@ const StorytellingManagement = () => {
                               <Button
                                 variant="ghost"
                                 size="icon"
-                                onClick={() => setEditingStory(story)}
+                                onClick={() => {
+                                  setEditingStory(story);
+                                  setActiveTab('create');
+                                }}
                               >
                                 <Pencil className="h-4 w-4" />
                                 <span className="sr-only">Edit</span>
@@ -538,6 +553,16 @@ const StorytellingManagement = () => {
                       <p className="text-sm text-muted-foreground mt-2">
                         Upload a cover image for the story (JPG, PNG, max 5MB)
                       </p>
+                      {editingStory?.imageUrl && (
+                        <div className="mt-2">
+                          <p className="text-sm font-medium">Current image:</p>
+                          <img 
+                            src={editingStory.imageUrl} 
+                            alt={editingStory.title} 
+                            className="mt-1 h-20 w-auto object-cover rounded-md"
+                          />
+                        </div>
+                      )}
                     </div>
                     
                     <div>
@@ -553,6 +578,18 @@ const StorytellingManagement = () => {
                       <p className="text-sm text-muted-foreground mt-2">
                         Upload the audio recording (MP3, max 15MB)
                       </p>
+                      {editingStory?.audioUrl && (
+                        <div className="mt-2">
+                          <p className="text-sm font-medium">Current audio:</p>
+                          <audio 
+                            controls 
+                            src={editingStory.audioUrl}
+                            className="mt-1 w-full"
+                          >
+                            Your browser does not support the audio element.
+                          </audio>
+                        </div>
+                      )}
                     </div>
                   </div>
                   

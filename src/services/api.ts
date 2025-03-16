@@ -9,14 +9,16 @@ export const fetchStories = async (page = 1, limit = 10, customUrl?: string): Pr
   try {
     const baseUrl = customUrl || API_BASE_URL;
     const url = `${baseUrl}/stories?page=${page}&limit=${limit}`;
-    const response = await fetch(url);
     
+    console.log('Fetching stories from URL:', url);
+    const response = await fetch(url);
     
     if (!response.ok) {
       throw new Error(`Failed to fetch stories: ${response.status}`);
     }
     
     const data = await response.json();
+    console.log('Fetched stories data:', data);
     
     // Handle the response format from the API
     if (data.success && Array.isArray(data.data)) {
@@ -40,13 +42,16 @@ export const fetchStoryById = async (id: string, customUrl?: string): Promise<St
   try {
     const baseUrl = customUrl || API_BASE_URL;
     const url = `${baseUrl}/stories/${id}`;
+    
+    console.log('Fetching story by ID from URL:', url);
     const response = await fetch(url);
-    console.log({url,response,customUrl});
+    
     if (!response.ok) {
       throw new Error(`Failed to fetch story: ${response.status}`);
     }
     
     const data = await response.json();
+    console.log('Fetched story data:', data);
     
     // Handle different API response formats
     if (data.success && data.data) {
@@ -87,6 +92,7 @@ export const createStory = async (storyData: StoryFormData, customUrl?: string):
       }
     });
     
+    console.log('Creating story with URL:', url);
     const response = await fetch(url, {
       method: 'POST',
       body: formData,
@@ -99,6 +105,7 @@ export const createStory = async (storyData: StoryFormData, customUrl?: string):
     }
     
     const data = await response.json();
+    console.log('Created story response:', data);
     
     // Handle different API response formats
     if (data.success && data.data) {
@@ -143,6 +150,7 @@ export const updateStory = async (
       }
     });
     
+    console.log('Updating story with URL:', url);
     const response = await fetch(url, {
       method: 'PUT',
       body: formData,
@@ -155,6 +163,7 @@ export const updateStory = async (
     }
     
     const data = await response.json();
+    console.log('Updated story response:', data);
     
     // Handle different API response formats
     if (data.success && data.data) {
@@ -175,6 +184,8 @@ export const deleteStory = async (id: string, customUrl?: string): Promise<boole
   try {
     const baseUrl = customUrl || API_BASE_URL;
     const url = `${baseUrl}/stories/${id}`;
+    
+    console.log('Deleting story with URL:', url);
     const response = await fetch(url, {
       method: 'DELETE',
     });
@@ -183,6 +194,7 @@ export const deleteStory = async (id: string, customUrl?: string): Promise<boole
       throw new Error(`Failed to delete story: ${response.status}`);
     }
     
+    console.log('Story deleted successfully');
     return true;
   } catch (error) {
     console.error(`Error deleting story with id ${id}:`, error);
