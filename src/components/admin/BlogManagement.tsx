@@ -60,7 +60,7 @@ const BlogManagement = () => {
   // Fetch blogs from the API
   const fetchBlogs = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/articles/admin?page=1&limit=10',{
+      const response = await fetch('http://13.232.139.240:5000/api/articles/admin?page=1&limit=10',{
         method: 'POST',});
       const data = await response.json();
       setBlogs(data.data);
@@ -88,7 +88,7 @@ const BlogManagement = () => {
   // Create a new blog
   const handleCreateBlog = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/articles', {
+      const response = await fetch('http://13.232.139.240:5000/api/articles', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -141,7 +141,7 @@ const BlogManagement = () => {
     if (!editingBlog) return;
 
     try {
-      const response = await fetch(`http://localhost:5000/api/articles/${editingBlog._id}`, {
+      const response = await fetch(`http://13.232.139.240:5000/api/articles/${editingBlog._id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json'
@@ -176,7 +176,7 @@ const BlogManagement = () => {
     console.log(id,"delete this object id");
     
     try {
-      const response = await fetch(`http://localhost:5000/api/articles/${id}`, {
+      const response = await fetch(`http://13.232.139.240:5000/api/articles/${id}`, {
         method: 'DELETE'
       });
 

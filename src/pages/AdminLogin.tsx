@@ -47,7 +47,7 @@ const AdminLogin = () => {
 
     try {
       // Make API request
-      const response = await fetch('http://localhost:5000/api/auth/login', {
+      const response = await fetch('http://13.232.139.240:5000/api/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -112,7 +112,7 @@ const AdminLogin = () => {
                     <FormItem>
                       <FormLabel>Email address</FormLabel>
                       <FormControl>
-                        <Input type="email" placeholder="admin@theboolean.com" {...field} className="h-10" />
+                        <Input type="email" placeholder="prefix@theboolean.com" {...field} className="h-10" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
