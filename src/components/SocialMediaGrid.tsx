@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Instagram, Youtube, Twitter, Filter, MessageCircle, Heart, Share2 } from 'lucide-react';
@@ -9,7 +8,7 @@ import {
   TabsTrigger 
 } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 
 interface SocialPost {
   id: string;
@@ -163,6 +162,7 @@ const socialPosts: SocialPost[] = [
 const SocialMediaGrid = () => {
   const [activeTab, setActiveTab] = useState<string>('all');
   const [selectedPost, setSelectedPost] = useState<SocialPost | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
   
   const filteredPosts = activeTab === 'all'
     ? socialPosts
@@ -181,17 +181,9 @@ const SocialMediaGrid = () => {
     }
   };
   
-  const getTypeName = (type: string) => {
-    switch (type) {
-      case 'instagram':
-        return 'Instagram';
-      case 'youtube':
-        return 'YouTube';
-      case 'twitter':
-        return 'Twitter';
-      default:
-        return '';
-    }
+  const handlePostSelect = (post: SocialPost) => {
+    setSelectedPost(post);
+    setDialogOpen(true);
   };
 
   return (
@@ -225,7 +217,7 @@ const SocialMediaGrid = () => {
                 key={post.id} 
                 post={post} 
                 index={index} 
-                onSelect={() => setSelectedPost(post)} 
+                onSelect={() => handlePostSelect(post)} 
               />
             ))}
           </div>
@@ -238,7 +230,7 @@ const SocialMediaGrid = () => {
                 key={post.id} 
                 post={post} 
                 index={index} 
-                onSelect={() => setSelectedPost(post)} 
+                onSelect={() => handlePostSelect(post)} 
               />
             ))}
           </div>
@@ -251,7 +243,7 @@ const SocialMediaGrid = () => {
                 key={post.id} 
                 post={post} 
                 index={index} 
-                onSelect={() => setSelectedPost(post)} 
+                onSelect={() => handlePostSelect(post)} 
               />
             ))}
           </div>
@@ -264,7 +256,7 @@ const SocialMediaGrid = () => {
                 key={post.id} 
                 post={post} 
                 index={index} 
-                onSelect={() => setSelectedPost(post)} 
+                onSelect={() => handlePostSelect(post)} 
               />
             ))}
           </div>
@@ -272,71 +264,73 @@ const SocialMediaGrid = () => {
       </Tabs>
       
       {/* Post Detail Dialog */}
-      {selectedPost && (
-        <Dialog open={!!selectedPost} onOpenChange={(open) => !open && setSelectedPost(null)}>
-          <DialogContent className="sm:max-w-[600px] p-0 overflow-hidden">
-            <div className="relative">
-              {selectedPost.type === 'youtube' && selectedPost.videoUrl ? (
-                <div className="aspect-video w-full">
-                  <iframe
-                    src={selectedPost.videoUrl}
-                    className="w-full h-full"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                  ></iframe>
-                </div>
-              ) : (
-                <img 
-                  src={selectedPost.imageUrl} 
-                  alt={selectedPost.caption} 
-                  className="w-full object-cover aspect-square sm:aspect-video"
-                />
-              )}
-              
-              <div className="absolute top-3 left-3 bg-black/60 text-white rounded-full p-1.5">
-                {getSocialIcon(selectedPost.type)}
-              </div>
-            </div>
-            
-            <div className="p-6">
-              <div className="flex items-center gap-3 mb-4">
-                <img
-                  src={selectedPost.author.avatar}
-                  alt={selectedPost.author.name}
-                  className="w-10 h-10 rounded-full object-cover"
-                />
-                <div>
-                  <p className="font-medium">{selectedPost.author.name}</p>
-                  <p className="text-sm text-muted-foreground">@{selectedPost.author.handle}</p>
-                </div>
-                <div className="ml-auto text-sm text-muted-foreground">
-                  {selectedPost.date}
-                </div>
-              </div>
-              
-              <p className="text-sm mb-6">{selectedPost.caption}</p>
-              
-              <div className="flex items-center justify-between">
-                <div className="flex gap-4">
-                  <div className="flex items-center gap-1 text-sm">
-                    <Heart className="h-4 w-4" />
-                    <span>{selectedPost.likes.toLocaleString()}</span>
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="sm:max-w-[600px] p-0 overflow-hidden">
+          {selectedPost && (
+            <>
+              <div className="relative">
+                {selectedPost.type === 'youtube' && selectedPost.videoUrl ? (
+                  <div className="aspect-video w-full">
+                    <iframe
+                      src={selectedPost.videoUrl}
+                      className="w-full h-full"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                    ></iframe>
                   </div>
-                  <div className="flex items-center gap-1 text-sm">
-                    <MessageCircle className="h-4 w-4" />
-                    <span>{selectedPost.comments.toLocaleString()}</span>
+                ) : (
+                  <img 
+                    src={selectedPost.imageUrl} 
+                    alt={selectedPost.caption} 
+                    className="w-full object-cover aspect-square sm:aspect-video"
+                  />
+                )}
+                
+                <div className="absolute top-3 left-3 bg-black/60 text-white rounded-full p-1.5">
+                  {getSocialIcon(selectedPost.type)}
+                </div>
+              </div>
+              
+              <div className="p-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <img
+                    src={selectedPost.author.avatar}
+                    alt={selectedPost.author.name}
+                    className="w-10 h-10 rounded-full object-cover"
+                  />
+                  <div>
+                    <p className="font-medium">{selectedPost.author.name}</p>
+                    <p className="text-sm text-muted-foreground">@{selectedPost.author.handle}</p>
+                  </div>
+                  <div className="ml-auto text-sm text-muted-foreground">
+                    {selectedPost.date}
                   </div>
                 </div>
                 
-                <Button variant="ghost" size="sm" className="gap-1">
-                  <Share2 className="h-4 w-4" />
-                  Share
-                </Button>
+                <p className="text-sm mb-6">{selectedPost.caption}</p>
+                
+                <div className="flex items-center justify-between">
+                  <div className="flex gap-4">
+                    <div className="flex items-center gap-1 text-sm">
+                      <Heart className="h-4 w-4" />
+                      <span>{selectedPost.likes.toLocaleString()}</span>
+                    </div>
+                    <div className="flex items-center gap-1 text-sm">
+                      <MessageCircle className="h-4 w-4" />
+                      <span>{selectedPost.comments.toLocaleString()}</span>
+                    </div>
+                  </div>
+                  
+                  <Button variant="ghost" size="sm" className="gap-1">
+                    <Share2 className="h-4 w-4" />
+                    Share
+                  </Button>
+                </div>
               </div>
-            </div>
-          </DialogContent>
-        </Dialog>
-      )}
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
@@ -355,65 +349,63 @@ const SocialMediaCard = ({ post, index, onSelect }: SocialMediaCardProps) => {
       transition={{ duration: 0.5, delay: index * 0.1 }}
       className="group rounded-lg overflow-hidden border border-border/50 shadow-sm hover:shadow-md transition-all duration-300"
     >
-      <DialogTrigger asChild onClick={onSelect}>
-        <div className="cursor-pointer">
-          <div className="relative aspect-square">
-            <img 
-              src={post.imageUrl} 
-              alt={post.caption} 
-              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-            />
-            <div className="absolute top-3 left-3 bg-black/60 text-white rounded-full p-1.5">
-              {post.type === 'instagram' && <Instagram className="h-4 w-4" />}
-              {post.type === 'youtube' && <Youtube className="h-4 w-4" />}
-              {post.type === 'twitter' && <Twitter className="h-4 w-4" />}
-            </div>
-            {post.type === 'youtube' && (
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="rounded-full bg-black/60 p-3 opacity-80 group-hover:opacity-100 transition-opacity">
-                  <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M8 5v14l11-7z" />
-                  </svg>
-                </div>
+      <div className="cursor-pointer" onClick={onSelect}>
+        <div className="relative aspect-square">
+          <img 
+            src={post.imageUrl} 
+            alt={post.caption} 
+            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+          />
+          <div className="absolute top-3 left-3 bg-black/60 text-white rounded-full p-1.5">
+            {post.type === 'instagram' && <Instagram className="h-4 w-4" />}
+            {post.type === 'youtube' && <Youtube className="h-4 w-4" />}
+            {post.type === 'twitter' && <Twitter className="h-4 w-4" />}
+          </div>
+          {post.type === 'youtube' && (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="rounded-full bg-black/60 p-3 opacity-80 group-hover:opacity-100 transition-opacity">
+                <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M8 5v14l11-7z" />
+                </svg>
               </div>
-            )}
+            </div>
+          )}
+        </div>
+        
+        <div className="p-4">
+          <div className="flex items-center gap-2 mb-3">
+            <img
+              src={post.author.avatar}
+              alt={post.author.name}
+              className="w-8 h-8 rounded-full object-cover"
+            />
+            <div className="text-sm">
+              <p className="font-medium leading-tight">{post.author.name}</p>
+              <p className="text-xs text-muted-foreground">@{post.author.handle}</p>
+            </div>
+            <div className="ml-auto text-xs text-muted-foreground">
+              {post.date}
+            </div>
           </div>
           
-          <div className="p-4">
-            <div className="flex items-center gap-2 mb-3">
-              <img
-                src={post.author.avatar}
-                alt={post.author.name}
-                className="w-8 h-8 rounded-full object-cover"
-              />
-              <div className="text-sm">
-                <p className="font-medium leading-tight">{post.author.name}</p>
-                <p className="text-xs text-muted-foreground">@{post.author.handle}</p>
+          <p className="text-sm mb-3 line-clamp-2">{post.caption}</p>
+          
+          <div className="flex items-center justify-between text-xs text-muted-foreground">
+            <div className="flex gap-3">
+              <div className="flex items-center gap-1">
+                <Heart className="h-3.5 w-3.5" />
+                <span>{post.likes.toLocaleString()}</span>
               </div>
-              <div className="ml-auto text-xs text-muted-foreground">
-                {post.date}
+              <div className="flex items-center gap-1">
+                <MessageCircle className="h-3.5 w-3.5" />
+                <span>{post.comments.toLocaleString()}</span>
               </div>
             </div>
             
-            <p className="text-sm mb-3 line-clamp-2">{post.caption}</p>
-            
-            <div className="flex items-center justify-between text-xs text-muted-foreground">
-              <div className="flex gap-3">
-                <div className="flex items-center gap-1">
-                  <Heart className="h-3.5 w-3.5" />
-                  <span>{post.likes.toLocaleString()}</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <MessageCircle className="h-3.5 w-3.5" />
-                  <span>{post.comments.toLocaleString()}</span>
-                </div>
-              </div>
-              
-              <span className="text-xs font-medium">{post.type.charAt(0).toUpperCase() + post.type.slice(1)}</span>
-            </div>
+            <span className="text-xs font-medium">{post.type.charAt(0).toUpperCase() + post.type.slice(1)}</span>
           </div>
         </div>
-      </DialogTrigger>
+      </div>
     </motion.div>
   );
 };

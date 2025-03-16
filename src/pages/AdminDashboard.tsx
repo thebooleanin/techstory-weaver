@@ -11,6 +11,7 @@ import AdManagement from '@/components/admin/AdManagement';
 import StorytellingManagement from '@/components/admin/StorytellingManagement';
 import FormManagement from '@/components/admin/FormManagement';
 import SiteConfigManagement from '@/components/admin/SiteConfigManagement';
+import InfoManagement from '@/components/admin/InfoManagement';
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -105,12 +106,13 @@ const AdminDashboard = () => {
         )}
         
         <Tabs defaultValue="blog" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="blog">Blog Management</TabsTrigger>
             <TabsTrigger value="ads">Ad Management</TabsTrigger>
             <TabsTrigger value="storytelling">Storytelling</TabsTrigger>
             <TabsTrigger value="forms">Form Submissions</TabsTrigger>
             <TabsTrigger value="siteconfig">Site Configuration</TabsTrigger>
+            <TabsTrigger value="info">Info Manager</TabsTrigger>
           </TabsList>
           
           <TabsContent value="blog" className="space-y-4">
@@ -131,6 +133,10 @@ const AdminDashboard = () => {
           
           <TabsContent value="siteconfig" className="space-y-4">
             <SiteConfigManagement />
+          </TabsContent>
+          
+          <TabsContent value="info" className="space-y-4">
+            <InfoManagement />
           </TabsContent>
         </Tabs>
       </main>
