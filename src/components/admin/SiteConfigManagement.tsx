@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { motion } from 'framer-motion';
@@ -10,7 +9,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
-import { Palette, Image, Globe, Sun, Moon, Upload, Save, RotateCcw, Trophy, Users, Star, Plus, Minus } from 'lucide-react';
+import { Palette, Image, Globe, Sun, Moon, Upload, Save, RotateCcw, Trophy, Users, Star, Plus, Minus, Brush } from 'lucide-react';
+import ThemeManager from './ThemeManager';
 
 // Mock initial site configuration
 const initialConfig = {
@@ -213,15 +213,19 @@ const SiteConfigManagement = () => {
         </div>
       </div>
       
-      <Tabs defaultValue="general" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
+      <Tabs defaultValue="themes" className="w-full">
+        <TabsList className="grid w-full grid-cols-5">
+          <TabsTrigger value="themes" className="flex items-center gap-2">
+            <Brush className="h-4 w-4" />
+            Themes
+          </TabsTrigger>
           <TabsTrigger value="general" className="flex items-center gap-2">
             <Globe className="h-4 w-4" />
             General
           </TabsTrigger>
           <TabsTrigger value="appearance" className="flex items-center gap-2">
             <Palette className="h-4 w-4" />
-            Appearance
+            Colors
           </TabsTrigger>
           <TabsTrigger value="metrics" className="flex items-center gap-2">
             <Trophy className="h-4 w-4" />
@@ -232,6 +236,10 @@ const SiteConfigManagement = () => {
             Logo & Nav
           </TabsTrigger>
         </TabsList>
+        
+        <TabsContent value="themes" className="py-4">
+          <ThemeManager />
+        </TabsContent>
         
         <TabsContent value="general" className="space-y-4 py-4">
           <Card>
