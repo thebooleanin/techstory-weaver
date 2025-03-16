@@ -1,13 +1,14 @@
 
 import { Story, StoryFormData } from '@/types/story';
 
-// Base URL from environment or fallback
-const API_BASE_URL = 'http://localhost:5000/api';
+// Base URL for the API
+const API_BASE_URL = 'http://13.232.139.240:5000/api';
 
-// Fetch all stories
-export const fetchStories = async (customUrl?: string): Promise<Story[]> => {
+// Fetch all stories with optional pagination
+export const fetchStories = async (page = 1, limit = 10, customUrl?: string): Promise<Story[]> => {
   try {
-    const url = customUrl || `${API_BASE_URL}/stories`;
+    const baseUrl = customUrl || API_BASE_URL;
+    const url = `${baseUrl}/stories?page=${page}&limit=${limit}`;
     const response = await fetch(url);
     
     if (!response.ok) {
@@ -16,7 +17,7 @@ export const fetchStories = async (customUrl?: string): Promise<Story[]> => {
     
     const data = await response.json();
     
-    // Handle the correct response format
+    // Handle the response format from the API
     if (data.success && Array.isArray(data.data)) {
       return data.data;
     } else if (Array.isArray(data.stories)) {
@@ -63,16 +64,17 @@ export const fetchStoryById = async (id: string, customUrl?: string): Promise<St
 // Create a new story with FormData (handles files)
 export const createStory = async (storyData: StoryFormData, customUrl?: string): Promise<Story | null> => {
   try {
-    const url = customUrl || `${API_BASE_URL}/stories`;
+    const baseUrl = customUrl || API_BASE_URL;
+    const url = `${baseUrl}/stories`;
     
     // Create FormData object for file uploads
     const formData = new FormData();
     
     // Add all fields to FormData
     Object.entries(storyData).forEach(([key, value]) => {
-      if (value !== undefined) {
+      if (value !== undefined && value !== null) {
         if (key === 'image' || key === 'audioSrc') {
-          // These are already File objects, just add them to FormData
+          // These are File objects, add them to FormData
           if (value) formData.append(key, value as File);
         } else if (key === 'featured') {
           // Convert boolean to string
@@ -91,7 +93,8 @@ export const createStory = async (storyData: StoryFormData, customUrl?: string):
     });
     
     if (!response.ok) {
-      throw new Error(`Failed to create story: ${response.status}`);
+      const errorText = await response.text();
+      throw new Error(`Failed to create story: ${response.status} - ${errorText}`);
     }
     
     const data = await response.json();
@@ -125,9 +128,9 @@ export const updateStory = async (
     
     // Add all fields to FormData
     Object.entries(storyData).forEach(([key, value]) => {
-      if (value !== undefined) {
+      if (value !== undefined && value !== null) {
         if (key === 'image' || key === 'audioSrc') {
-          // These are already File objects, just add them to FormData
+          // These are File objects, add them to FormData
           if (value) formData.append(key, value as File);
         } else if (key === 'featured') {
           // Convert boolean to string
@@ -146,7 +149,8 @@ export const updateStory = async (
     });
     
     if (!response.ok) {
-      throw new Error(`Failed to update story: ${response.status}`);
+      const errorText = await response.text();
+      throw new Error(`Failed to update story: ${response.status} - ${errorText}`);
     }
     
     const data = await response.json();

@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -15,6 +16,9 @@ import { ArrowRight, Play, Pause, SkipBack, SkipForward, Volume2, VolumeX, Headp
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import AudioPlayer from '@/components/storytelling/AudioPlayer';
+import { fetchStories } from '@/services/api';
+import { Story } from '@/types/story';
+import { useQuery } from '@tanstack/react-query';
 
 // Form schema for the storyteller request
 const formSchema = z.object({
@@ -33,77 +37,7 @@ const formSchema = z.object({
   // Audio upload is optional
 });
 
-// Mock data for stories
-const stories = [
-  {
-    id: 1,
-    title: "Building Resilience: My Journey from Startup Failure to Success",
-    author: "Sarah Chen",
-    duration: "5:12",
-    category: "Entrepreneurship",
-    date: "June 15, 2023",
-    description: "Sarah shares her story of perseverance through the challenges of her first failed startup and how it led to her current success.",
-    audioSrc: "https://cdn.plyr.io/static/demo/Kishi_Bashi_-_It_All_Began_With_a_Burst.mp3",
-    image: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1674&q=80"
-  },
-  {
-    id: 2,
-    title: "From Garage to Google: How I Landed My Dream Job",
-    author: "David Park",
-    duration: "4:45",
-    category: "Career Growth",
-    date: "May 20, 2023",
-    description: "David's journey from coding in his garage to securing a position at one of the world's leading tech companies.",
-    audioSrc: "https://cdn.plyr.io/static/demo/Kishi_Bashi_-_It_All_Began_With_a_Burst.mp3",
-    image: "https://images.unsplash.com/photo-1515378791036-0648a3ef77b2?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1170&q=80"
-  },
-  {
-    id: 3,
-    title: "The Ethical Dilemma of AI Development",
-    author: "Maya Rodriguez",
-    duration: "5:30",
-    category: "Tech Ethics",
-    date: "June 5, 2023",
-    description: "Maya discusses the moral challenges she faced while working on an AI project and how she navigated these complex waters.",
-    audioSrc: "https://cdn.plyr.io/static/demo/Kishi_Bashi_-_It_All_Began_With_a_Burst.mp3",
-    image: "https://images.unsplash.com/photo-1531746790731-6c087fecd65a?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1674&q=80"
-  },
-  {
-    id: 4,
-    title: "Breaking the Glass Ceiling in Tech",
-    author: "Lisa Johnson",
-    duration: "4:55",
-    category: "Diversity in Tech",
-    date: "July 1, 2023",
-    description: "Lisa shares her experience as a woman in tech leadership and the challenges she overcame to reach her position.",
-    audioSrc: "https://cdn.plyr.io/static/demo/Kishi_Bashi_-_It_All_Began_With_a_Burst.mp3",
-    image: "https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1170&q=80"
-  },
-  {
-    id: 5,
-    title: "Open Source: Building a Community Around Your Project",
-    author: "Raj Patel",
-    duration: "5:15",
-    category: "Open Source",
-    date: "June 28, 2023",
-    description: "Raj explains how he grew his open-source project from a personal tool to a community-supported platform with thousands of users.",
-    audioSrc: "https://cdn.plyr.io/static/demo/Kishi_Bashi_-_It_All_Began_With_a_Burst.mp3",
-    image: "https://images.unsplash.com/photo-1528901166007-3784c7dd3653?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1170&q=80"
-  },
-  {
-    id: 6,
-    title: "Finding Work-Life Balance in a Startup Environment",
-    author: "Emma Chen",
-    duration: "5:05",
-    category: "Wellbeing",
-    date: "July 10, 2023",
-    description: "Emma discusses the importance of setting boundaries and maintaining wellness while working in the fast-paced startup world.",
-    audioSrc: "https://cdn.plyr.io/static/demo/Kishi_Bashi_-_It_All_Began_With_a_Burst.mp3",
-    image: "https://images.unsplash.com/photo-1499750310107-5fef28a66643?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1170&q=80"
-  }
-];
-
-// Live broadcast data
+// Live broadcast data (mock data, could be replaced with API data later)
 const liveBroadcasts = [
   {
     id: 101,
@@ -129,19 +63,42 @@ const liveBroadcasts = [
 
 // Categories for filtering
 const categories = [
-  "All", "Entrepreneurship", "Career Growth", "Tech Ethics", "Diversity in Tech", "Open Source", "Wellbeing"
+  "All", "Technology", "Innovation", "Startups", "AI", "Blockchain", "Fiction", "Cybersecurity", "FinTech"
 ];
 
 const Storytelling = () => {
-  const [selectedStory, setSelectedStory] = useState<(typeof stories)[0] | null>(null);
+  const [selectedStory, setSelectedStory] = useState<Story | null>(null);
   const [selectedLive, setSelectedLive] = useState<(typeof liveBroadcasts)[0] | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [activeCategory, setActiveCategory] = useState("All");
   const [activeTab, setActiveTab] = useState("recorded");
+  const [apiUrl, setApiUrl] = useState('http://13.232.139.240:5000/api');
+
+  // Fetch stories from API
+  const { data: stories = [], isLoading, error, refetch } = useQuery({
+    queryKey: ['public-stories'],
+    queryFn: () => fetchStories(1, 20, `${apiUrl}/stories`),
+  });
 
   // Scroll to top on page load
   useEffect(() => {
     window.scrollTo(0, 0);
+    
+    // Load site config from localStorage
+    const config = localStorage.getItem('siteConfig');
+    if (config) {
+      try {
+        const parsedConfig = JSON.parse(config);
+        if (parsedConfig?.apiEndpoints?.stories) {
+          // Extract base URL from the stories endpoint
+          const storiesUrl = parsedConfig.apiEndpoints.stories;
+          const baseUrl = storiesUrl.split('/stories')[0];
+          setApiUrl(baseUrl);
+        }
+      } catch (e) {
+        console.error('Error parsing site config:', e);
+      }
+    }
   }, []);
 
   // Initialize form for the storyteller request
@@ -247,8 +204,8 @@ const Storytelling = () => {
         <div className="sticky top-16 z-30 bg-background shadow-md border-b border-border/10">
           <div className="container py-4">
             <AudioPlayer 
-              audioSrc={selectedStory?.audioSrc || selectedLive?.audioSrc || ''}
-              imageUrl={selectedStory?.image || selectedLive?.image}
+              audioSrc={selectedStory?.audioUrl || selectedStory?.audioSrc || selectedLive?.audioSrc || ''}
+              imageUrl={selectedStory?.image || selectedStory?.imageUrl || selectedLive?.image}
               title={selectedStory?.title || selectedLive?.title || ''}
               author={selectedStory?.author || selectedLive?.author || ''}
               isLive={!!selectedLive?.isLive}
@@ -325,58 +282,96 @@ const Storytelling = () => {
             <>
               <div className="mb-8">
                 <h2 className="text-2xl font-bold mb-4">Featured Stories</h2>
-                <p className="text-muted-foreground">Browse our collection of {filteredStories.length} inspiring tech stories</p>
+                <p className="text-muted-foreground">
+                  {isLoading ? 'Loading stories...' : 
+                   error ? 'Error loading stories. Please try again.' :
+                   `Browse our collection of ${filteredStories.length} inspiring tech stories`}
+                </p>
               </div>
               
               {/* Stories Grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {filteredStories.map((story, index) => (
-                  <motion.div
-                    key={story.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.4, delay: index * 0.1 }}
-                  >
-                    <Card className="cursor-pointer hover:shadow-md transition-shadow overflow-hidden h-full flex flex-col">
-                      <div className="aspect-[16/9] overflow-hidden relative">
-                        <img 
-                          src={story.image} 
-                          alt={story.title} 
-                          className="w-full h-full object-cover transition-transform duration-300 hover:scale-105" 
-                        />
-                        <Button 
-                          variant="default"
-                          size="icon"
-                          className="absolute bottom-3 right-3 rounded-full h-10 w-10 shadow-md"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSelectedStory(story);
-                          }}
-                        >
-                          <Play className="h-5 w-5 ml-0.5" />
-                        </Button>
-                      </div>
-                      <CardHeader className="flex-1">
-                        <div className="flex items-center gap-2 mb-2">
-                          <span className="inline-block px-3 py-0.5 bg-primary/10 text-primary text-xs font-medium rounded-full">
-                            {story.category}
-                          </span>
-                          <span className="text-xs text-muted-foreground flex items-center">
-                            <Headphones size={12} className="mr-1" />
-                            {story.duration}
-                          </span>
-                        </div>
-                        <CardTitle className="text-lg">{story.title}</CardTitle>
-                        <CardDescription className="line-clamp-2">
-                          {story.description}
-                        </CardDescription>
+                {isLoading ? (
+                  // Loading skeletons
+                  Array.from({ length: 6 }).map((_, index) => (
+                    <Card key={`skeleton-${index}`} className="overflow-hidden h-full flex flex-col animate-pulse">
+                      <div className="aspect-[16/9] bg-muted"></div>
+                      <CardHeader>
+                        <div className="h-6 bg-muted rounded mb-2 w-3/4"></div>
+                        <div className="h-4 bg-muted rounded w-full"></div>
                       </CardHeader>
-                      <CardFooter className="pt-0 pb-4 text-sm text-muted-foreground">
-                        By {story.author} • {story.date}
-                      </CardFooter>
+                      <CardFooter className="h-4 bg-muted rounded w-1/2"></CardFooter>
                     </Card>
-                  </motion.div>
-                ))}
+                  ))
+                ) : error ? (
+                  <div className="col-span-3 text-center py-12">
+                    <p className="text-lg text-muted-foreground mb-4">Failed to load stories</p>
+                    <Button onClick={() => refetch()}>Try Again</Button>
+                  </div>
+                ) : filteredStories.length === 0 ? (
+                  <div className="col-span-3 text-center py-12">
+                    <p className="text-lg text-muted-foreground">No stories found in this category</p>
+                  </div>
+                ) : (
+                  filteredStories.map((story, index) => (
+                    <motion.div
+                      key={story._id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.4, delay: index * 0.1 }}
+                    >
+                      <Card className="cursor-pointer hover:shadow-md transition-shadow overflow-hidden h-full flex flex-col">
+                        <div className="aspect-[16/9] overflow-hidden relative">
+                          <img 
+                            src={story.image || story.imageUrl} 
+                            alt={story.title} 
+                            className="w-full h-full object-cover transition-transform duration-300 hover:scale-105" 
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).src = '/placeholder.svg';
+                            }}
+                          />
+                          <Button 
+                            variant="default"
+                            size="icon"
+                            className="absolute bottom-3 right-3 rounded-full h-10 w-10 shadow-md"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedStory(story);
+                            }}
+                          >
+                            <Play className="h-5 w-5 ml-0.5" />
+                          </Button>
+                        </div>
+                        <CardHeader className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            <span className="inline-block px-3 py-0.5 bg-primary/10 text-primary text-xs font-medium rounded-full">
+                              {story.category}
+                            </span>
+                            <span className="text-xs text-muted-foreground flex items-center">
+                              <Headphones size={12} className="mr-1" />
+                              {story.duration}
+                            </span>
+                          </div>
+                          <Link to={`/story/${story._id}`}>
+                            <CardTitle className="text-lg hover:text-primary transition-colors">
+                              {story.title}
+                            </CardTitle>
+                          </Link>
+                          <CardDescription className="line-clamp-2">
+                            {story.description || "Listen to this captivating story that takes you through an inspiring tech journey."}
+                          </CardDescription>
+                        </CardHeader>
+                        <CardFooter className="pt-0 pb-4 text-sm text-muted-foreground">
+                          By {story.author} • {new Date(story.date).toLocaleDateString('en-US', {
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric',
+                          })}
+                        </CardFooter>
+                      </Card>
+                    </motion.div>
+                  ))
+                )}
               </div>
             </>
           )}

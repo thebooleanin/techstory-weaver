@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
@@ -86,12 +85,12 @@ const StoryDetail = () => {
         <meta name="description" content={story.description || `Listen to ${story.title} by ${story.author}`} />
         <meta property="og:title" content={`${story.title} | TheBoolean`} />
         <meta property="og:description" content={story.description || `Listen to ${story.title} by ${story.author}`} />
-        <meta property="og:image" content={story.imageUrl} />
+        <meta property="og:image" content={story.imageUrl || story.image} />
         <meta property="og:type" content="article" />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content={`${story.title} | TheBoolean`} />
         <meta name="twitter:description" content={story.description || `Listen to ${story.title} by ${story.author}`} />
-        <meta name="twitter:image" content={story.imageUrl} />
+        <meta name="twitter:image" content={story.imageUrl || story.image} />
       </Helmet>
 
       <Navbar />
@@ -109,7 +108,7 @@ const StoryDetail = () => {
 
           <div className="relative rounded-xl overflow-hidden mb-8 aspect-video">
             <img 
-              src={story.imageUrl} 
+              src={story.imageUrl || story.image} 
               alt={story.title}
               className="w-full h-full object-cover"
               onError={(e) => {
@@ -162,10 +161,10 @@ const StoryDetail = () => {
                 <div className="bg-muted/30 p-6 rounded-xl mb-8">
                   <h3 className="text-lg font-semibold mb-4">Listen to the story</h3>
                   <AudioPlayer 
-                    audioSrc={story.audioUrl} 
+                    audioSrc={story.audioUrl || story.audioSrc || ''} 
                     title={story.title} 
                     author={story.author}
-                    imageUrl={story.imageUrl}
+                    imageUrl={story.imageUrl || story.image}
                   />
                 </div>
               )}

@@ -106,7 +106,7 @@ const StorytellingManagement = () => {
   
   const { data: stories = [], isLoading, error, refetch } = useQuery({
     queryKey: ['stories'],
-    queryFn: () => fetchStories(apiUrl),
+    queryFn: () => fetchStories(1, 10, apiUrl),
   });
   
   const createMutation = useMutation({
@@ -169,7 +169,7 @@ const StorytellingManagement = () => {
   });
   
   const onSubmit = (values: StoryFormValues) => {
-    // Ensure all required fields are present for StoryFormData
+    // Create a story form data object with required fields
     const formData: StoryFormData = {
       title: values.title,
       author: values.author,
