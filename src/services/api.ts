@@ -11,6 +11,7 @@ export const fetchStories = async (page = 1, limit = 10, customUrl?: string): Pr
     const url = `${baseUrl}/stories?page=${page}&limit=${limit}`;
     const response = await fetch(url);
     
+    
     if (!response.ok) {
       throw new Error(`Failed to fetch stories: ${response.status}`);
     }
@@ -40,7 +41,7 @@ export const fetchStoryById = async (id: string, customUrl?: string): Promise<St
     const baseUrl = customUrl || API_BASE_URL;
     const url = `${baseUrl}/stories/${id}`;
     const response = await fetch(url);
-    
+    console.log({url,response,customUrl});
     if (!response.ok) {
       throw new Error(`Failed to fetch story: ${response.status}`);
     }

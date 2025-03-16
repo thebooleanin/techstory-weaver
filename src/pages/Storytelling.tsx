@@ -77,7 +77,7 @@ const Storytelling = () => {
   // Fetch stories from API
   const { data: stories = [], isLoading, error, refetch } = useQuery({
     queryKey: ['public-stories'],
-    queryFn: () => fetchStories(1, 20, `${apiUrl}/stories`),
+    queryFn: () => fetchStories(1, 20, `${apiUrl}`),
   });
 
   // Scroll to top on page load
@@ -352,7 +352,7 @@ const Storytelling = () => {
                               {story.duration}
                             </span>
                           </div>
-                          <Link to={`/story/${story._id}`}>
+                          <Link to={`/storytelling/${story._id}`}>
                             <CardTitle className="text-lg hover:text-primary transition-colors">
                               {story.title}
                             </CardTitle>
