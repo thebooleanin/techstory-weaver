@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Instagram, Youtube, Twitter, Filter, MessageCircle, Heart, Share2 } from 'lucide-react';
@@ -162,7 +163,7 @@ const socialPosts: SocialPost[] = [
 const SocialMediaGrid = () => {
   const [activeTab, setActiveTab] = useState<string>('all');
   const [selectedPost, setSelectedPost] = useState<SocialPost | null>(null);
-  const [dialogOpen, setDialogOpen] = useState(false);
+  const [open, setOpen] = useState(false);
   
   const filteredPosts = activeTab === 'all'
     ? socialPosts
@@ -183,7 +184,7 @@ const SocialMediaGrid = () => {
   
   const handlePostSelect = (post: SocialPost) => {
     setSelectedPost(post);
-    setDialogOpen(true);
+    setOpen(true);
   };
 
   return (
@@ -264,7 +265,7 @@ const SocialMediaGrid = () => {
       </Tabs>
       
       {/* Post Detail Dialog */}
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+      <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="sm:max-w-[600px] p-0 overflow-hidden">
           {selectedPost && (
             <>

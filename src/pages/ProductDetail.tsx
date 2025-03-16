@@ -1,491 +1,522 @@
 
 import { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { Helmet } from 'react-helmet-async';
 import { 
   ChevronRight, 
   Star, 
-  ThumbsUp, 
-  ThumbsDown, 
+  Info, 
+  Check, 
+  X, 
   Share2, 
-  Calendar, 
+  Heart, 
+  ShoppingCart,
+  Clock,
+  Car,
+  Bike,
+  Smartphone,
+  Tag,
   Award,
-  Info,
-  ClipboardCheck, 
-  ArrowLeft, 
-  ArrowRight
+  CircleCheck
 } from 'lucide-react';
-import { Tab } from '@headlessui/react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
+import { toast } from 'sonner';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-
-// Temporary mock data - will be replaced with API call
-const mockProduct = {
-  _id: "bike1",
-  type: "bike",
-  name: "XPulse 210",
-  brand: "Hero",
-  description: "The Hero XPulse 210 is an adventure motorcycle designed for both on-road and off-road experiences. With its powerful engine, sturdy build, and advanced features, it's perfect for adventure enthusiasts seeking reliability and performance.",
-  shortDescription: "A versatile adventure motorcycle with exceptional performance",
-  images: [
-    { id: "1", url: "https://images.unsplash.com/photo-1558981806-ec527fa84c39?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1740&q=80", alt: "Hero XPulse 210 Front View", isPrimary: true },
-    { id: "2", url: "https://images.unsplash.com/photo-1558980394-dbb977039a2e?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1740&q=80", alt: "Hero XPulse 210 Side View" },
-    { id: "3", url: "https://images.unsplash.com/photo-1558981852-426c6c22a060?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1740&q=80", alt: "Hero XPulse 210 Rear View" },
-    { id: "4", url: "https://images.unsplash.com/photo-1558980664-2506fca59581?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1740&q=80", alt: "Hero XPulse 210 Dashboard" }
-  ],
-  price: {
-    base: 142000,
-    max: 159000
-  },
-  specifications: [
-    { id: "s1", name: "Engine", value: "210cc, Oil cooled, 4 Stroke", category: "Engine" },
-    { id: "s2", name: "Power", value: "19.5 bhp @ 8,500 rpm", category: "Engine" },
-    { id: "s3", name: "Torque", value: "17.35 Nm @ 6,500 rpm", category: "Engine" },
-    { id: "s4", name: "Mileage", value: "45 kmpl", category: "Performance" },
-    { id: "s5", name: "Top Speed", value: "130 kmph", category: "Performance" },
-    { id: "s6", name: "Transmission", value: "5 Speed Manual", category: "Performance" },
-    { id: "s7", name: "Fuel Tank", value: "13 L", category: "Performance" },
-    { id: "s8", name: "Seat Height", value: "825 mm", category: "Dimensions" },
-    { id: "s9", name: "Weight", value: "157 kg", category: "Dimensions" },
-    { id: "s10", name: "Ground Clearance", value: "220 mm", category: "Dimensions" }
-  ],
-  variants: [
-    { id: "v1", name: "Standard", price: 142000, isAvailable: true },
-    { id: "v2", name: "Rally Kit", price: 159000, features: ["Upgraded suspension", "Rally tires", "Protective guards"], isAvailable: true }
-  ],
-  features: [
-    "Full LED headlamp with DRL",
-    "Turn-by-turn navigation",
-    "Bluetooth connectivity",
-    "USB charging port",
-    "Long-travel suspension",
-    "21-inch front wheel",
-    "Dual-purpose tires",
-    "Digital instrument cluster"
-  ],
-  pros: [
-    "Excellent off-road capability",
-    "Comfortable for long rides",
-    "High ground clearance",
-    "Fuel efficient",
-    "Advanced connectivity features"
-  ],
-  cons: [
-    "Limited top-end power",
-    "Tall seat height for shorter riders",
-    "Basic wind protection"
-  ],
-  rating: 4.3,
-  reviewCount: 187,
-  launchDate: "2023-06-15",
-  popularComparison: ["Royal Enfield Himalayan", "KTM 250 Adventure", "BMW G 310 GS"],
-  isPopular: true,
-  isFeatured: true
-};
+import { fetchProductById } from '@/services/productService';
+import { Product, ProductSpec, Variant, ProductType } from '@/types/product';
 
 const ProductDetail = () => {
-  const { id, type } = useParams<{ id: string; type: string }>();
-  const [product, setProduct] = useState(mockProduct);
-  const [activeImageIndex, setActiveImageIndex] = useState(0);
-  const [specs, setSpecs] = useState<{ [key: string]: { name: string; value: string }[] }>({});
+  const { type, id } = useParams<{ type: string; id: string }>();
+  const navigate = useNavigate();
+  const [product, setProduct] = useState<Product | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [selectedVariant, setSelectedVariant] = useState<Variant | null>(null);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [specifications, setSpecifications] = useState<{ [key: string]: ProductSpec[] }>({});
 
   useEffect(() => {
     window.scrollTo(0, 0);
-    
-    // In a real implementation, fetch product data from API
-    // const fetchProduct = async () => {
-    //   try {
-    //     const response = await fetch(`/api/products/${type}/${id}`);
-    //     const data = await response.json();
-    //     setProduct(data);
-    //   } catch (error) {
-    //     console.error('Error fetching product:', error);
-    //   }
-    // };
-    
-    // fetchProduct();
-    
-    // Organize specs by category
-    const groupedSpecs: { [key: string]: { name: string; value: string }[] } = {};
-    product.specifications.forEach(spec => {
-      if (!groupedSpecs[spec.category]) {
-        groupedSpecs[spec.category] = [];
+
+    const loadProduct = async () => {
+      try {
+        if (!id) return;
+        
+        setLoading(true);
+        const data = await fetchProductById(id, type as ProductType);
+        
+        if (data) {
+          setProduct(data);
+          
+          // Set the primary image
+          const primaryImage = data.images.find(img => img.isPrimary)?.url || data.images[0]?.url;
+          setSelectedImage(primaryImage);
+          
+          // Set the default variant
+          if (data.variants && data.variants.length > 0) {
+            setSelectedVariant(data.variants[0]);
+          }
+          
+          // Group specifications by category
+          const groupedSpecs = data.specifications.reduce((acc, spec) => {
+            if (!acc[spec.category]) {
+              acc[spec.category] = [];
+            }
+            acc[spec.category].push(spec);
+            return acc;
+          }, {} as { [key: string]: ProductSpec[] });
+          
+          setSpecifications(groupedSpecs);
+        } else {
+          toast.error('Product not found');
+          navigate('/');
+        }
+      } catch (error) {
+        console.error('Error loading product:', error);
+        toast.error('Failed to load product details');
+      } finally {
+        setLoading(false);
       }
-      groupedSpecs[spec.category].push({ name: spec.name, value: spec.value });
-    });
-    setSpecs(groupedSpecs);
-  }, [id, type]);
+    };
 
-  const handlePrevImage = () => {
-    setActiveImageIndex(prev => (prev === 0 ? product.images.length - 1 : prev - 1));
+    loadProduct();
+  }, [id, type, navigate]);
+
+  // Handle variant selection
+  const handleVariantSelect = (variant: Variant) => {
+    setSelectedVariant(variant);
   };
 
-  const handleNextImage = () => {
-    setActiveImageIndex(prev => (prev === product.images.length - 1 ? 0 : prev + 1));
+  // Handle "Add to Wishlist" click
+  const handleAddToWishlist = () => {
+    toast.success(`${product?.name} added to your wishlist`);
   };
 
-  // Capitalize product type for display
-  const displayType = type ? type.charAt(0).toUpperCase() + type.slice(1) : 'Product';
+  // Handle "Add to Cart" click
+  const handleAddToCart = () => {
+    toast.success(`${product?.name} (${selectedVariant?.name}) added to your cart`);
+  };
+
+  // Get the product type icon
+  const getProductTypeIcon = (productType: ProductType = 'bike') => {
+    switch (productType) {
+      case 'car':
+        return <Car className="h-5 w-5" />;
+      case 'bike':
+        return <Bike className="h-5 w-5" />;
+      case 'mobile':
+        return <Smartphone className="h-5 w-5" />;
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <div className="container py-20 text-center">
+          <div className="animate-pulse flex flex-col items-center">
+            <div className="w-60 h-8 bg-muted rounded mb-10"></div>
+            <div className="w-full max-w-3xl h-96 bg-muted rounded mb-8"></div>
+            <div className="w-full max-w-3xl grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="h-40 bg-muted rounded"></div>
+              <div className="h-40 bg-muted rounded"></div>
+            </div>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (!product) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <div className="container py-20 text-center">
+          <h1 className="text-3xl font-bold mb-4">Product Not Found</h1>
+          <p className="text-muted-foreground mb-8">The product you are looking for does not exist or has been removed.</p>
+          <Button onClick={() => navigate('/')}>Back to Home</Button>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
+      <Helmet>
+        <title>{`${product.brand} ${product.name} | Details and Specifications`}</title>
+        <meta name="description" content={product.shortDescription || product.description.substring(0, 160)} />
+      </Helmet>
+      
       <Navbar />
       
-      <div className="container py-6 mt-16">
-        {/* Breadcrumbs */}
-        <div className="flex items-center text-sm mb-6">
-          <Link to="/" className="text-muted-foreground hover:text-foreground">Home</Link>
-          <ChevronRight className="h-4 w-4 mx-1 text-muted-foreground" />
-          <Link to={`/${product.type}s`} className="text-muted-foreground hover:text-foreground">{displayType}s</Link>
-          <ChevronRight className="h-4 w-4 mx-1 text-muted-foreground" />
-          <Link to={`/${product.type}s/${product.brand.toLowerCase()}`} className="text-muted-foreground hover:text-foreground">{product.brand}</Link>
-          <ChevronRight className="h-4 w-4 mx-1 text-muted-foreground" />
-          <span className="font-medium">{product.name}</span>
-        </div>
-      
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Image Gallery */}
-          <div>
-            <div className="relative aspect-[4/3] bg-black/5 rounded-lg overflow-hidden mb-4">
-              <motion.img
-                key={activeImageIndex}
-                src={product.images[activeImageIndex].url}
-                alt={product.images[activeImageIndex].alt}
-                className="w-full h-full object-cover"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.3 }}
-              />
-              
-              <Button 
-                variant="secondary" 
-                size="icon" 
-                className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white"
-                onClick={handlePrevImage}
-              >
-                <ArrowLeft className="h-4 w-4" />
-              </Button>
-              
-              <Button 
-                variant="secondary" 
-                size="icon" 
-                className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white"
-                onClick={handleNextImage}
-              >
-                <ArrowRight className="h-4 w-4" />
-              </Button>
-            </div>
-            
-            <div className="grid grid-cols-4 gap-2">
-              {product.images.map((image, index) => (
-                <div 
-                  key={image.id}
-                  className={`aspect-square rounded-md overflow-hidden cursor-pointer border-2 ${
-                    index === activeImageIndex ? 'border-primary' : 'border-transparent'
-                  }`}
-                  onClick={() => setActiveImageIndex(index)}
-                >
-                  <img 
-                    src={image.url} 
-                    alt={image.alt} 
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-              ))}
-            </div>
+      {/* Breadcrumb */}
+      <div className="bg-muted/30 border-b">
+        <div className="container py-2">
+          <div className="flex items-center text-sm text-muted-foreground">
+            <a href="/" className="hover:text-primary">Home</a>
+            <ChevronRight className="h-4 w-4 mx-1" />
+            <a href={`/${product.type}s`} className="hover:text-primary capitalize">{`${product.type}s`}</a>
+            <ChevronRight className="h-4 w-4 mx-1" />
+            <a href={`/${product.type}s/${product.brand.toLowerCase()}`} className="hover:text-primary">{product.brand}</a>
+            <ChevronRight className="h-4 w-4 mx-1" />
+            <span className="truncate">{product.name}</span>
           </div>
-          
-          {/* Product Info */}
-          <div>
-            <div className="space-y-4">
-              <h1 className="text-3xl font-bold">{product.brand} {product.name}</h1>
+        </div>
+      </div>
+      
+      {/* Product Header */}
+      <section className="bg-background pt-6 pb-4">
+        <div className="container">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <h1 className="text-3xl md:text-4xl font-bold">{product.brand} {product.name}</h1>
               
-              <div className="flex items-center gap-3">
+              <div className="flex items-center mt-2 gap-6">
                 <div className="flex items-center">
-                  <Star className="h-5 w-5 fill-yellow-400 text-yellow-400" />
-                  <span className="font-medium ml-1">{product.rating}</span>
-                  <span className="text-muted-foreground ml-1">({product.reviewCount} reviews)</span>
+                  <div className="flex items-center text-amber-500 mr-2">
+                    {[...Array(5)].map((_, i) => (
+                      <Star 
+                        key={i} 
+                        className={`h-4 w-4 ${i < Math.floor(product.rating || 0) ? 'fill-current' : 'fill-none'}`}
+                      />
+                    ))}
+                  </div>
+                  <span className="text-sm font-medium">{product.rating} / 5</span>
+                  {product.reviewCount && (
+                    <span className="text-sm text-muted-foreground ml-1">
+                      ({product.reviewCount} reviews)
+                    </span>
+                  )}
                 </div>
                 
                 {product.launchDate && (
                   <div className="flex items-center text-sm text-muted-foreground">
-                    <Calendar className="h-4 w-4 mr-1" />
-                    <span>Launched: {new Date(product.launchDate).toLocaleDateString('en-US', { 
-                      month: 'short', 
-                      year: 'numeric' 
-                    })}</span>
+                    <Clock className="h-4 w-4 mr-1" />
+                    <span>Launched: {new Date(product.launchDate).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</span>
                   </div>
                 )}
-                
-                {product.isPopular && (
-                  <Badge variant="secondary" className="flex items-center gap-1">
-                    <Award className="h-3 w-3" />
-                    Popular
-                  </Badge>
-                )}
               </div>
-              
-              <div className="flex items-baseline gap-2">
-                <span className="text-2xl font-bold">₹{product.price.base.toLocaleString()}</span>
-                {product.price.max && product.price.max > product.price.base && (
-                  <span className="text-lg text-muted-foreground">- ₹{product.price.max.toLocaleString()}</span>
-                )}
-                <span className="text-sm text-muted-foreground">Ex-showroom price</span>
-              </div>
-              
-              <p className="text-muted-foreground">{product.shortDescription}</p>
-              
-              <div className="flex flex-wrap gap-4 pt-2">
-                <Button className="flex items-center gap-2">
-                  Get On Road Price
-                </Button>
-                <Button variant="outline" className="flex items-center gap-2">
-                  <Share2 className="h-4 w-4" />
-                  Share
-                </Button>
-              </div>
-              
-              {/* Variants */}
-              <div className="pt-4">
-                <h3 className="font-semibold mb-3">Available Variants</h3>
-                <div className="space-y-3">
-                  {product.variants.map(variant => (
-                    <Card key={variant.id} className="overflow-hidden">
-                      <CardContent className="p-4">
-                        <div className="flex justify-between items-center">
-                          <div>
-                            <h4 className="font-medium">{variant.name}</h4>
-                            {variant.features && variant.features.length > 0 && (
-                              <ul className="text-sm text-muted-foreground mt-1">
-                                {variant.features.map((feature, i) => (
-                                  <li key={i} className="flex items-center">
-                                    <ChevronRight className="h-3 w-3 mr-1 flex-shrink-0" />
-                                    {feature}
-                                  </li>
-                                ))}
-                              </ul>
-                            )}
-                          </div>
-                          <div className="text-right">
-                            <div className="font-bold">₹{variant.price.toLocaleString()}</div>
-                            <Button size="sm" className="mt-2">
-                              View Details
-                            </Button>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              </div>
-              
-              {/* Pros & Cons */}
-              {(product.pros?.length > 0 || product.cons?.length > 0) && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4">
-                  {product.pros && product.pros.length > 0 && (
-                    <div className="bg-green-50 dark:bg-green-950/20 p-4 rounded-lg">
-                      <h3 className="font-semibold mb-2 flex items-center text-green-700 dark:text-green-400">
-                        <ThumbsUp className="h-4 w-4 mr-2" />
-                        Pros
-                      </h3>
-                      <ul className="space-y-1">
-                        {product.pros.map((pro, index) => (
-                          <li key={index} className="text-sm flex items-start">
-                            <ChevronRight className="h-4 w-4 mr-1 text-green-500 flex-shrink-0" />
-                            <span>{pro}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                  
-                  {product.cons && product.cons.length > 0 && (
-                    <div className="bg-red-50 dark:bg-red-950/20 p-4 rounded-lg">
-                      <h3 className="font-semibold mb-2 flex items-center text-red-700 dark:text-red-400">
-                        <ThumbsDown className="h-4 w-4 mr-2" />
-                        Cons
-                      </h3>
-                      <ul className="space-y-1">
-                        {product.cons.map((con, index) => (
-                          <li key={index} className="text-sm flex items-start">
-                            <ChevronRight className="h-4 w-4 mr-1 text-red-500 flex-shrink-0" />
-                            <span>{con}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                </div>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              {product.isPopular && (
+                <Badge variant="secondary" className="gap-1">
+                  <Award className="h-3.5 w-3.5" /> Popular
+                </Badge>
+              )}
+              {product.isFeatured && (
+                <Badge className="gap-1">
+                  <Star className="h-3.5 w-3.5" /> Featured
+                </Badge>
               )}
             </div>
           </div>
         </div>
-        
-        {/* Tabs Section */}
-        <div className="mt-12">
-          <Tab.Group>
-            <Tab.List className="flex space-x-1 border-b">
-              <Tab className={({ selected }) => 
-                `py-3 px-4 text-sm font-medium border-b-2 ${
-                  selected 
-                    ? 'border-primary text-primary' 
-                    : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
-                }`
-              }>
-                Overview
-              </Tab>
-              <Tab className={({ selected }) => 
-                `py-3 px-4 text-sm font-medium border-b-2 ${
-                  selected 
-                    ? 'border-primary text-primary' 
-                    : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
-                }`
-              }>
-                Specifications
-              </Tab>
-              <Tab className={({ selected }) => 
-                `py-3 px-4 text-sm font-medium border-b-2 ${
-                  selected 
-                    ? 'border-primary text-primary' 
-                    : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
-                }`
-              }>
-                Features
-              </Tab>
-              <Tab className={({ selected }) => 
-                `py-3 px-4 text-sm font-medium border-b-2 ${
-                  selected 
-                    ? 'border-primary text-primary' 
-                    : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
-                }`
-              }>
-                Compare
-              </Tab>
-            </Tab.List>
-            
-            <Tab.Panels className="mt-6">
-              {/* Overview Panel */}
-              <Tab.Panel>
-                <div className="prose prose-sm max-w-none dark:prose-invert">
-                  <h2>About {product.brand} {product.name}</h2>
-                  <p>{product.description}</p>
-                  
-                  <p>With a powerful {mockProduct.specifications.find(s => s.name === "Engine")?.value} engine delivering {mockProduct.specifications.find(s => s.name === "Power")?.value} of power and {mockProduct.specifications.find(s => s.name === "Torque")?.value} of torque, the {product.name} ensures a thrilling ride whether you're on city streets or rough terrain.</p>
-                  
-                  <p>The {product.name} boasts a ground clearance of {mockProduct.specifications.find(s => s.name === "Ground Clearance")?.value}, making it perfect for tackling uneven surfaces. Its fuel efficiency of {mockProduct.specifications.find(s => s.name === "Mileage")?.value} ensures you spend more time riding and less time refueling.</p>
+      </section>
+      
+      {/* Main Content */}
+      <section className="py-6">
+        <div className="container">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            {/* Product Images */}
+            <div className="lg:col-span-7 space-y-4">
+              <div className="relative aspect-[4/3] bg-muted/30 rounded-lg overflow-hidden">
+                {selectedImage && (
+                  <img 
+                    src={selectedImage} 
+                    alt={`${product.brand} ${product.name}`}
+                    className="w-full h-full object-cover"
+                  />
+                )}
+                
+                <div className="absolute top-4 left-4 flex gap-2">
+                  <Badge variant="secondary" className="flex items-center gap-1 bg-black/70 text-white border-none">
+                    {getProductTypeIcon(product.type)}
+                    <span className="capitalize">{product.type}</span>
+                  </Badge>
                 </div>
-              </Tab.Panel>
+                
+                <Button 
+                  size="icon" 
+                  variant="secondary" 
+                  className="absolute top-4 right-4 rounded-full opacity-80 hover:opacity-100"
+                  onClick={() => toast.success('Image shared to clipboard')}
+                >
+                  <Share2 className="h-4 w-4" />
+                </Button>
+              </div>
               
-              {/* Specifications Panel */}
-              <Tab.Panel>
-                <div className="space-y-8">
-                  {Object.entries(specs).map(([category, specList]) => (
-                    <div key={category}>
-                      <h3 className="text-lg font-semibold mb-4 flex items-center">
-                        <ClipboardCheck className="h-5 w-5 mr-2 text-primary" />
-                        {category} Specifications
+              <div className="flex gap-2 overflow-x-auto pb-2">
+                {product.images.map((image) => (
+                  <button
+                    key={image.id}
+                    onClick={() => setSelectedImage(image.url)}
+                    className={`relative flex-shrink-0 w-20 h-20 rounded-md overflow-hidden border-2 transition-all ${
+                      selectedImage === image.url ? 'border-primary' : 'border-transparent'
+                    }`}
+                  >
+                    <img 
+                      src={image.url} 
+                      alt={image.alt} 
+                      className="w-full h-full object-cover"
+                    />
+                  </button>
+                ))}
+              </div>
+            </div>
+            
+            {/* Product Info & Actions */}
+            <div className="lg:col-span-5 space-y-6">
+              {/* Price and Short Description */}
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="mb-4">
+                    <div className="flex items-baseline gap-2 mb-2">
+                      <span className="text-2xl font-bold">
+                        ₹{(selectedVariant?.price || product.price.base).toLocaleString()}
+                      </span>
+                      {product.price.max && product.price.max > (selectedVariant?.price || product.price.base) && (
+                        <span className="text-muted-foreground">
+                          onwards
+                        </span>
+                      )}
+                    </div>
+                    
+                    {product.shortDescription && (
+                      <p className="text-muted-foreground">{product.shortDescription}</p>
+                    )}
+                  </div>
+                  
+                  {/* Variants */}
+                  {product.variants.length > 1 && (
+                    <div className="mb-6">
+                      <h3 className="font-medium mb-3 flex items-center gap-2">
+                        <Tag className="h-4 w-4" />
+                        Select Variant
                       </h3>
-                      <div className="bg-muted/40 rounded-lg overflow-hidden">
-                        <table className="w-full text-sm">
-                          <tbody>
-                            {specList.map((spec, index) => (
-                              <tr key={index} className={index % 2 === 0 ? 'bg-transparent' : 'bg-muted/70'}>
-                                <td className="py-3 px-4 font-medium">{spec.name}</td>
-                                <td className="py-3 px-4">{spec.value}</td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        {product.variants.map((variant) => (
+                          <button
+                            key={variant.id}
+                            onClick={() => handleVariantSelect(variant)}
+                            className={`flex items-center justify-between p-3 rounded-md border transition-all ${
+                              selectedVariant?.id === variant.id
+                                ? 'border-primary bg-primary/5'
+                                : 'border-border hover:border-primary/50'
+                            }`}
+                            disabled={!variant.isAvailable}
+                          >
+                            <div className="flex flex-col items-start">
+                              <span className="font-medium">{variant.name}</span>
+                              <span className="text-sm text-muted-foreground">
+                                ₹{variant.price.toLocaleString()}
+                              </span>
+                            </div>
+                            {selectedVariant?.id === variant.id && (
+                              <CircleCheck className="h-5 w-5 text-primary" />
+                            )}
+                            {!variant.isAvailable && (
+                              <Badge variant="outline" className="bg-muted">Out of Stock</Badge>
+                            )}
+                          </button>
+                        ))}
                       </div>
                     </div>
-                  ))}
-                </div>
-              </Tab.Panel>
+                  )}
+                  
+                  {/* Action Buttons */}
+                  <div className="flex gap-3 mt-4">
+                    <Button 
+                      className="flex-1" 
+                      onClick={handleAddToCart}
+                    >
+                      <ShoppingCart className="h-4 w-4 mr-2" />
+                      Add to Cart
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      className="flex-1"
+                      onClick={handleAddToWishlist}
+                    >
+                      <Heart className="h-4 w-4 mr-2" />
+                      Wishlist
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
               
-              {/* Features Panel */}
-              <Tab.Panel>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  <div>
-                    <h3 className="text-lg font-semibold mb-4 flex items-center">
-                      <Award className="h-5 w-5 mr-2 text-primary" />
-                      Key Features
-                    </h3>
-                    <ul className="space-y-3">
-                      {product.features?.map((feature, index) => (
-                        <li key={index} className="flex items-start">
-                          <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center mr-3 mt-0.5">
-                            <Check className="h-3.5 w-3.5 text-primary" />
-                          </div>
-                          <span>{feature}</span>
+              {/* Key Features */}
+              {product.features && product.features.length > 0 && (
+                <Card>
+                  <CardContent className="pt-6">
+                    <h3 className="font-medium mb-3">Key Features</h3>
+                    <ul className="grid grid-cols-1 sm:grid-cols-2 gap-y-2 gap-x-4">
+                      {product.features.map((feature, index) => (
+                        <li key={index} className="flex items-start gap-2">
+                          <Check className="h-4 w-4 text-primary mt-1" />
+                          <span className="text-sm">{feature}</span>
                         </li>
                       ))}
                     </ul>
-                  </div>
-                  
-                  <div className="bg-muted/30 p-6 rounded-lg">
-                    <h3 className="text-lg font-semibold mb-4 flex items-center">
-                      <Info className="h-5 w-5 mr-2 text-primary" />
-                      Did You Know?
-                    </h3>
-                    <p className="text-sm">The {product.name} was designed to excel in various terrains, from city streets to mountainous trails. Its robust suspension system and carefully crafted frame provide stability and comfort during long rides.</p>
-                    <p className="text-sm mt-3">With advanced features like turn-by-turn navigation and Bluetooth connectivity, the {product.name} combines traditional biking excellence with modern technology.</p>
-                  </div>
-                </div>
-              </Tab.Panel>
+                  </CardContent>
+                </Card>
+              )}
               
-              {/* Compare Panel */}
-              <Tab.Panel>
-                <div>
-                  <h3 className="text-lg font-semibold mb-4">Popular Comparisons</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    {product.popularComparison?.map((competitor, index) => (
-                      <Card key={index} className="overflow-hidden">
-                        <CardContent className="p-4">
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <h4 className="font-medium">VS {competitor}</h4>
-                              <p className="text-sm text-muted-foreground mt-1">See how they compare</p>
-                            </div>
-                            <Button size="sm" variant="outline">
-                              Compare
-                            </Button>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                </div>
-              </Tab.Panel>
-            </Tab.Panels>
-          </Tab.Group>
+              {/* Pros & Cons */}
+              {(product.pros || product.cons) && (
+                <Card>
+                  <CardContent className="pt-6">
+                    <h3 className="font-medium mb-4">Pros & Cons</h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {product.pros && product.pros.length > 0 && (
+                        <div>
+                          <h4 className="text-sm font-medium text-green-600 mb-2">Pros</h4>
+                          <ul className="space-y-2">
+                            {product.pros.map((pro, index) => (
+                              <li key={index} className="flex items-start gap-2">
+                                <Check className="h-4 w-4 text-green-600 mt-0.5" />
+                                <span className="text-sm">{pro}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                      
+                      {product.cons && product.cons.length > 0 && (
+                        <div>
+                          <h4 className="text-sm font-medium text-red-600 mb-2">Cons</h4>
+                          <ul className="space-y-2">
+                            {product.cons.map((con, index) => (
+                              <li key={index} className="flex items-start gap-2">
+                                <X className="h-4 w-4 text-red-600 mt-0.5" />
+                                <span className="text-sm">{con}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          </div>
         </div>
-      </div>
+      </section>
+      
+      {/* Tabs Section */}
+      <section className="py-8 bg-muted/20">
+        <div className="container">
+          <Tabs defaultValue="overview">
+            <TabsList className="mb-6">
+              <TabsTrigger value="overview">Overview</TabsTrigger>
+              <TabsTrigger value="specifications">Specifications</TabsTrigger>
+              {product.popularComparison && (
+                <TabsTrigger value="comparison">Compare</TabsTrigger>
+              )}
+            </TabsList>
+            
+            <TabsContent value="overview" className="mt-0">
+              <Card>
+                <CardContent className="p-6">
+                  <h2 className="text-2xl font-bold mb-4">{product.brand} {product.name} Overview</h2>
+                  <p className="mb-6 whitespace-pre-line">{product.description}</p>
+                  
+                  {product.features && product.features.length > 0 && (
+                    <div className="mt-8">
+                      <h3 className="text-xl font-semibold mb-4">Key Features</h3>
+                      <ul className="grid grid-cols-1 md:grid-cols-2 gap-y-3 gap-x-6">
+                        {product.features.map((feature, index) => (
+                          <li key={index} className="flex items-start gap-2">
+                            <Check className="h-5 w-5 text-primary mt-0.5" />
+                            <span>{feature}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+            
+            <TabsContent value="specifications" className="mt-0">
+              <Card>
+                <CardContent className="p-6">
+                  <h2 className="text-2xl font-bold mb-6">{product.brand} {product.name} Specifications</h2>
+                  
+                  {Object.entries(specifications).map(([category, specs]) => (
+                    <div key={category} className="mb-8">
+                      <h3 className="text-xl font-semibold mb-4">{category}</h3>
+                      <div className="border rounded-lg overflow-hidden">
+                        {specs.map((spec, index) => (
+                          <div 
+                            key={spec.id} 
+                            className={`flex items-start p-4 ${
+                              index !== specs.length - 1 ? 'border-b' : ''
+                            }`}
+                          >
+                            <div className="w-1/3 font-medium">{spec.name}</div>
+                            <div className="w-2/3">{spec.value}</div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+            </TabsContent>
+            
+            {product.popularComparison && (
+              <TabsContent value="comparison" className="mt-0">
+                <Card>
+                  <CardContent className="p-6">
+                    <h2 className="text-2xl font-bold mb-6">Compare {product.brand} {product.name}</h2>
+                    
+                    <p className="mb-6">How does the {product.brand} {product.name} stack up against the competition? Here are some popular comparisons:</p>
+                    
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                      {product.popularComparison.map((competitor, index) => (
+                        <Card key={index}>
+                          <CardContent className="p-4 flex flex-col items-center text-center">
+                            <h3 className="font-semibold mb-2">{competitor} vs {product.name}</h3>
+                            <p className="text-sm text-muted-foreground mb-4">Compare prices, specifications, features, and more</p>
+                            <Button variant="outline" size="sm" className="w-full">
+                              View Comparison
+                            </Button>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            )}
+          </Tabs>
+        </div>
+      </section>
+      
+      {/* Similar Products */}
+      {product.isPopular && (
+        <section className="py-12">
+          <div className="container">
+            <h2 className="text-2xl font-bold mb-6">Similar Products</h2>
+            <p className="text-center mb-8">
+              This feature will be available soon. Check back later!
+            </p>
+          </div>
+        </section>
+      )}
       
       <Footer />
     </div>
   );
 };
-
-function Check(props: any) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <polyline points="20 6 9 17 4 12" />
-    </svg>
-  )
-}
 
 export default ProductDetail;

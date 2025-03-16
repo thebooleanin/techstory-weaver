@@ -238,6 +238,7 @@ const InfoManagement = () => {
       return;
     }
     
+    // Fix the type issue by ensuring base is provided
     const newProduct: Product = {
       _id: `${data.type}${Date.now()}`,
       type: data.type,
@@ -251,7 +252,10 @@ const InfoManagement = () => {
         url: "https://images.unsplash.com/photo-1558981806-ec527fa84c39",
         alt: `${data.brand} ${data.name}`
       })),
-      price: data.price,
+      price: {
+        base: data.price.base || 0, // Ensure base is always provided
+        max: data.price.max
+      },
       specifications: specifications.map((spec, i) => ({
         id: `spec${i}`,
         ...spec
@@ -289,7 +293,10 @@ const InfoManagement = () => {
           brand: data.brand,
           description: data.description,
           shortDescription: data.shortDescription,
-          price: data.price,
+          price: {
+            base: data.price.base || 0, // Ensure base is always provided
+            max: data.price.max
+          },
           specifications: specifications.map((spec, i) => ({
             id: `spec${i}`,
             ...spec
