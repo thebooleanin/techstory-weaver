@@ -369,3 +369,13 @@ const dummyArticles: Article[] = [
   }
 ];
 
+const NewspaperView = () => {
+  return (
+    <div>
+      <h1>Newspaper View</h1>
+      {/* Add your newspaper UI here */}
+    </div>
+  );
+};
+
+export default NewspaperView;
