@@ -355,4 +355,17 @@ const dummyArticles: Article[] = [
     _id: "20",
     title: "Hollywood Studio Secures Record-Breaking Streaming Deal",
     excerpt: "Multi-billion dollar agreement marks major shift in content distribution strategy.",
-    content: "<p>In what industry analysts are calling a seismic shift in Hollywood's business model, one of the \"Big Five\" studios has signed a unprecedented streaming agreement worth $8.5 billion over five years with a major digital platform.</p><p>The deal—the largest of its kind—gives the streaming service exclusive rights to the studio's entire theatrical slate after movies complete their theatrical runs, replacing the traditional cable and network television windows that have been standard for decades.</p><p>\"This effectively signals the end of the old distribution paradigm,\" noted media analyst Richard Simmons. \"The traditional progression from theaters to home video to premium cable to broadcast is being compressed into essentially two windows: theatrical and streaming.\"</p><p>The agreement, which takes effect in January, includes the studio's existing library of over 3,
+    content: "<p>In what industry analysts are calling a seismic shift in Hollywood's business model, one of the \"Big Five\" studios has signed a unprecedented streaming agreement worth $8.5 billion over five years with a major digital platform.</p><p>The deal—the largest of its kind—gives the streaming service exclusive rights to the studio's entire theatrical slate after movies complete their theatrical runs, replacing the traditional cable and network television windows that have been standard for decades.</p><p>\"This effectively signals the end of the old distribution paradigm,\" noted media analyst Richard Simmons. \"The traditional progression from theaters to home video to premium cable to broadcast is being compressed into essentially two windows: theatrical and streaming.\"</p><p>The agreement, which takes effect in January, includes the studio's existing library of over 3,000 titles as well as all new releases through 2028. Industry analysts suggest this could accelerate similar deals across Hollywood as streaming platforms seek to differentiate themselves through exclusive content in an increasingly competitive market.</p>",
+    imageUrl: "https://images.unsplash.com/photo-1560109947-543149eceb16?ixlib=rb-4.0.3",
+    category: "Hollywood",
+    readTime: "5 min read",
+    date: "2023-10-07T14:10:00Z",
+    author: {
+      name: "Jessica Brooks",
+      avatar: "https://randomuser.me/api/portraits/women/65.jpg",
+      role: "Entertainment Industry Reporter"
+    },
+    tags: ["Hollywood", "Streaming", "Entertainment Business"]
+  }
+];
+
