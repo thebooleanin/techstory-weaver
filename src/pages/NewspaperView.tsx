@@ -4,7 +4,8 @@ import { Helmet } from "react-helmet-async";
 import { motion } from "framer-motion";
 import { 
   Newspaper, Clock, Calendar, ChevronRight, Share2, 
-  Bookmark, ArrowRight, ArrowLeft, Facebook, Twitter
+  Bookmark, ArrowRight, ArrowLeft, Facebook, Twitter,
+  Film, Flag, Code, Car
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
@@ -25,6 +26,7 @@ import {
   DialogContent, 
   DialogTrigger 
 } from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
 
 interface Article {
   _id: string;
@@ -236,409 +238,121 @@ const dummyArticles: Article[] = [
       role: "Technology & Security Correspondent"
     },
     tags: ["Cybersecurity", "Global Trade", "Technology"]
-  }
-];
-
-const NewspaperView = () => {
-  const { toast } = useToast();
-  const [apiConfig, setApiConfig] = useState<{
-    baseUrl: string;
-    endpoints: {
-      articles: string;
-    };
-  }>({
-    baseUrl: "http://13.232.139.240:5000",
-    endpoints: {
-      articles: "/api/articles",
+  },
+  {
+    _id: "13",
+    title: "Bollywood Megastar Announces Retirement After 40-Year Career",
+    excerpt: "Iconic actor reveals plans to step away from the silver screen following upcoming film release.",
+    content: "<p>One of Bollywood's most enduring and beloved stars shocked fans and industry insiders alike yesterday by announcing his retirement from acting after an illustrious four-decade career that transformed Indian cinema.</p><p>The 67-year-old actor, who has appeared in over 100 films and won numerous national awards, revealed his decision at a press conference following the completion of filming on what will now be his final project, \"The Last Scene.\"</p><p>\"After 40 years of living other people's lives on screen, I feel it's time to fully live my own,\" the emotional star told reporters. \"Cinema has given me everything—fame, fortune, and most importantly, the love of millions. But there comes a moment when one must step away, and for me, that time has arrived.\"</p><p>Industry colleagues expressed both surprise and understanding, with many acknowledging the actor's unparalleled contribution to Indian cinema. The actor's final film, directed by an acclaimed filmmaker, is scheduled for release later this year and is already being described as a fitting capstone to an extraordinary career.</p>",
+    imageUrl: "https://images.unsplash.com/photo-1616530940355-351fabd9524b?ixlib=rb-4.0.3",
+    category: "Bollywood",
+    readTime: "5 min read",
+    date: "2023-10-11T08:15:00Z",
+    author: {
+      name: "Priya Sharma",
+      avatar: "https://randomuser.me/api/portraits/women/45.jpg",
+      role: "Entertainment Editor"
     },
-  });
-  const [currentPage, setCurrentPage] = useState(1);
-  const [articleInFocus, setArticleInFocus] = useState<Article | null>(null);
-  const maxPages = 3;
-  const scrollRef = useRef<HTMLDivElement>(null);
-  
-  useEffect(() => {
-    const siteConfig = localStorage.getItem("siteConfig");
-    if (siteConfig) {
-      const config = JSON.parse(siteConfig);
-      if (config.api) {
-        setApiConfig({
-          baseUrl: config.api.baseUrl || apiConfig.baseUrl,
-          endpoints: {
-            articles: config.api.endpoints?.articles || apiConfig.endpoints.articles,
-          },
-        });
-      }
-    }
-  }, []);
-
-  const {
-    data: fetchedArticles,
-    isLoading,
-    isError,
-  } = useQuery({
-    queryKey: ["newspaper-articles"],
-    queryFn: async () => {
-      try {
-        const url = `${apiConfig.baseUrl}${apiConfig.endpoints.articles}`;
-        const response = await fetch(url);
-        
-        if (!response.ok) {
-          throw new Error(`Failed to fetch articles: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        return data.data || [];
-      } catch (error) {
-        console.error("Error fetching articles:", error);
-        toast({
-          title: "Error",
-          description: "Failed to fetch articles. Showing sample articles instead.",
-          variant: "destructive",
-        });
-        throw error;
-      }
+    tags: ["Bollywood", "Cinema", "Entertainment"]
+  },
+  {
+    _id: "14",
+    title: "Hollywood Studio Unveils Revolutionary Virtual Production Technology",
+    excerpt: "New filmmaking approach combines real-time rendering with traditional production methods.",
+    content: "<p>A major Hollywood studio has revealed a groundbreaking virtual production system that industry experts say could fundamentally transform how films are made in the coming decade.</p><p>The technology, developed over five years at a reported cost of $200 million, allows filmmakers to shoot actors against reactive digital backgrounds that render in real-time, eliminating the need for traditional green screens and post-production compositing for many sequences.</p><p>\"This represents perhaps the most significant shift in production methodology since the transition from film to digital,\" said the studio's head of technology innovation. \"Directors can now see their complete scenes, including complex visual effects elements, directly through the camera viewfinder while shooting.\"</p><p>The system, which combines high-resolution LED walls, motion capture technology, and custom game-engine modifications, has already been used on the studio's upcoming sci-fi blockbuster. The technology dramatically reduces post-production time and costs while giving actors the ability to respond to virtual environments they can actually see during filming.</p>",
+    imageUrl: "https://images.unsplash.com/photo-1478720568477-152d9b164e26?ixlib=rb-4.0.3",
+    category: "Hollywood",
+    readTime: "6 min read",
+    date: "2023-10-10T16:40:00Z",
+    author: {
+      name: "David Anderson",
+      avatar: "https://randomuser.me/api/portraits/men/72.jpg",
+      role: "Technology in Film Correspondent"
     },
-    enabled: !!apiConfig.baseUrl,
-  });
-
-  const articles = fetchedArticles?.length > 0 ? fetchedArticles : dummyArticles;
-  
-  const itemsPerPage = 4;
-  const displayedArticles = articles.slice(
-    (currentPage - 1) * itemsPerPage, 
-    currentPage * itemsPerPage
-  );
-  
-  const handleNextPage = () => {
-    if (currentPage < maxPages) {
-      setCurrentPage(prev => prev + 1);
-      scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-  };
-  
-  const handlePrevPage = () => {
-    if (currentPage > 1) {
-      setCurrentPage(prev => prev - 1);
-      scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-  };
-
-  const formatDate = (dateString: string) => {
-    try {
-      const date = new Date(dateString);
-      return date.toLocaleDateString("en-US", {
-        weekday: "long",
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-      });
-    } catch (e) {
-      return dateString;
-    }
-  };
-
-  const getExcerpt = (content: string, maxLength = 150) => {
-    const textOnly = content.replace(/<\/?[^>]+(>|$)/g, "");
-    
-    if (textOnly.length <= maxLength) return textOnly;
-    return textOnly.substring(0, maxLength) + "...";
-  };
-
-  const shareArticle = (article: Article, platform: string) => {
-    const title = encodeURIComponent(article.title);
-    const url = encodeURIComponent(`${window.location.origin}/articles/${article._id}`);
-    
-    let shareUrl = "";
-    
-    switch(platform) {
-      case "whatsapp":
-        shareUrl = `https://wa.me/?text=${title}%20${url}`;
-        break;
-      case "facebook":
-        shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${url}&quote=${title}`;
-        break;
-      case "twitter":
-        shareUrl = `https://twitter.com/intent/tweet?text=${title}&url=${url}`;
-        break;
-      case "copy":
-        navigator.clipboard.writeText(`${article.title} - ${window.location.origin}/articles/${article._id}`);
-        toast({
-          title: "Link copied",
-          description: "Article link has been copied to clipboard",
-        });
-        return;
-      default:
-        shareUrl = `mailto:?subject=${title}&body=${url}`;
-    }
-    
-    window.open(shareUrl, "_blank");
-  };
-
-  return (
-    <div className="min-h-screen bg-gray-100 text-black">
-      <Helmet>
-        <title>Newspaper | TheBoolean Times</title>
-        <meta name="description" content="Latest news in traditional newspaper format" />
-      </Helmet>
-      
-      <Navbar />
-      
-      <div className="pt-20 pb-10 bg-gray-200">
-        <ScrollArea className="h-[calc(100vh-8rem)]" ref={scrollRef}>
-          <div className="container max-w-6xl mx-auto bg-white border border-gray-300 shadow-md py-8 px-4 md:px-10">
-            <div className="border-b-4 border-black mb-8">
-              <div className="text-center mb-4">
-                <h1 className="font-serif text-4xl sm:text-5xl md:text-7xl font-bold uppercase tracking-tight mb-2 text-black">
-                  THE BOOLEAN TIMES
-                </h1>
-                <div className="flex flex-wrap justify-center items-center gap-2 sm:gap-4 text-sm mt-2">
-                  <div className="flex items-center">
-                    <Calendar className="h-4 w-4 mr-1" />
-                    {formatDate(new Date().toISOString())}
-                  </div>
-                  <div className="hidden sm:block">|</div>
-                  <div>DAILY EDITION</div>
-                  <div className="hidden sm:block">|</div>
-                  <div className="flex items-center">
-                    <Newspaper className="h-4 w-4 mr-1" />
-                    Vol. 1, No. {currentPage}
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            {isLoading ? (
-              <div className="h-96 flex justify-center items-center">
-                <div className="text-2xl font-serif">Loading today's headlines...</div>
-              </div>
-            ) : isError ? (
-              <div className="h-96 flex justify-center items-center flex-col gap-4">
-                <div className="text-xl font-serif">Using sample articles</div>
-                <Button variant="outline" onClick={() => window.location.reload()}>
-                  Try Again
-                </Button>
-              </div>
-            ) : (
-              <>
-                <div className="flex justify-between items-center mb-6 font-serif italic">
-                  <div>Page {currentPage} of {maxPages}</div>
-                  <div className="flex gap-2">
-                    <Button 
-                      variant="ghost" 
-                      className="text-black border-black hover:bg-gray-100" 
-                      onClick={handlePrevPage}
-                      disabled={currentPage === 1}
-                    >
-                      <ArrowLeft className="h-4 w-4" /> Previous
-                    </Button>
-                    <Button 
-                      variant="ghost" 
-                      className="text-black border-black hover:bg-gray-100" 
-                      onClick={handleNextPage}
-                      disabled={currentPage === maxPages}
-                    >
-                      Next <ArrowRight className="h-4 w-4 ml-1" />
-                    </Button>
-                  </div>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
-                  {displayedArticles.map((article, index) => (
-                    <motion.div 
-                      key={article._id}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ duration: 0.5, delay: index * 0.1 }}
-                      className="relative border border-gray-200 p-4 newspaper-article"
-                    >
-                      <div className="mb-3 flex justify-between items-start">
-                        <h3 className="font-serif text-xl font-bold leading-tight">
-                          {article.title}
-                        </h3>
-                        
-                        <div className="flex gap-1">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="sm" className="h-8 w-8 rounded-full p-0">
-                                <Share2 className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem onClick={() => shareArticle(article, "whatsapp")}>
-                                Share on WhatsApp
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => shareArticle(article, "facebook")}>
-                                <Facebook className="h-4 w-4 mr-2" /> Facebook
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => shareArticle(article, "twitter")}>
-                                <Twitter className="h-4 w-4 mr-2" /> Twitter
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => shareArticle(article, "copy")}>
-                                Copy Link
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                          
-                          <Dialog>
-                            <DialogTrigger asChild>
-                              <Button 
-                                variant="ghost" 
-                                size="sm" 
-                                className="h-8 w-8 rounded-full p-0"
-                                onClick={() => setArticleInFocus(article)}
-                              >
-                                <Bookmark className="h-4 w-4" />
-                              </Button>
-                            </DialogTrigger>
-                            <DialogContent className="max-w-3xl h-[80vh] overflow-auto">
-                              <div className="font-serif p-4">
-                                <h2 className="text-2xl font-bold mb-4">{article.title}</h2>
-                                <div className="flex items-center justify-between mb-4 text-sm">
-                                  <div>By {article.author.name}</div>
-                                  <div className="flex items-center">
-                                    <Clock className="h-4 w-4 mr-1" />
-                                    {article.readTime}
-                                  </div>
-                                </div>
-                                
-                                {article.imageUrl && (
-                                  <div className="mb-4">
-                                    <img
-                                      src={article.imageUrl}
-                                      alt={article.title}
-                                      className="w-full h-auto grayscale"
-                                      onError={(e) => {
-                                        (e.target as HTMLImageElement).src = "/placeholder.svg";
-                                      }}
-                                    />
-                                  </div>
-                                )}
-                                
-                                <div 
-                                  className="prose prose-stone max-w-none"
-                                  dangerouslySetInnerHTML={{ __html: article.content }}
-                                />
-                                
-                                <div className="mt-4 flex justify-between items-center">
-                                  <div className="flex gap-2">
-                                    {article.tags.map(tag => (
-                                      <span key={tag} className="bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded">
-                                        {tag}
-                                      </span>
-                                    ))}
-                                  </div>
-                                  
-                                  <div className="flex gap-2">
-                                    <Button 
-                                      variant="outline" 
-                                      size="sm"
-                                      onClick={() => shareArticle(article, "copy")}
-                                    >
-                                      <Share2 className="h-4 w-4 mr-2" /> Share
-                                    </Button>
-                                  </div>
-                                </div>
-                              </div>
-                            </DialogContent>
-                          </Dialog>
-                        </div>
-                      </div>
-                      
-                      <div className="mb-2">
-                        <span className="bg-black text-white text-xs px-2 py-1 uppercase font-medium">
-                          {article.category}
-                        </span>
-                      </div>
-                      
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                        {index === 0 && article.imageUrl && (
-                          <div className="md:col-span-1">
-                            <img
-                              src={article.imageUrl}
-                              alt={article.title}
-                              className="w-full h-auto grayscale"
-                              onError={(e) => {
-                                (e.target as HTMLImageElement).src = "/placeholder.svg";
-                              }}
-                            />
-                          </div>
-                        )}
-                        
-                        <div className={`${index === 0 && article.imageUrl ? 'md:col-span-2' : 'md:col-span-3'}`}>
-                          <p className="font-serif text-base leading-snug text-justify">
-                            {getExcerpt(article.content || article.excerpt, index === 0 ? 400 : 250)}
-                          </p>
-                          
-                          <div className="flex justify-between items-center mt-3 text-xs">
-                            <span className="italic">Continued on page {currentPage + 1}...</span>
-                            <span className="flex items-center">
-                              <Clock className="h-3 w-3 mr-1" />
-                              {article.readTime}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    </motion.div>
-                  ))}
-                </div>
-                
-                <div className="border-t-2 border-black pt-4 mt-8">
-                  <div className="text-center mb-4">
-                    <h4 className="font-serif text-lg font-bold uppercase mb-2">CLASSIFIEDS</h4>
-                  </div>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs border-b border-gray-300 pb-4 mb-4">
-                    <div className="border p-2">
-                      <p className="font-bold">FOR SALE</p>
-                      <p>Vintage typewriter, excellent condition. Call 555-1234 for details and pricing.</p>
-                    </div>
-                    <div className="border p-2">
-                      <p className="font-bold">JOBS AVAILABLE</p>
-                      <p>Newspaper seeks junior reporters. Experience with investigative journalism preferred.</p>
-                    </div>
-                    <div className="border p-2">
-                      <p className="font-bold">ANNOUNCEMENTS</p>
-                      <p>Town hall meeting this Thursday at 7pm. All residents encouraged to attend.</p>
-                    </div>
-                    <div className="border p-2">
-                      <p className="font-bold">SERVICES</p>
-                      <p>Professional photography for all occasions. Reasonable rates. Portfolio available.</p>
-                    </div>
-                  </div>
-                  
-                  <div className="font-serif text-xs text-center">
-                    <p>© {new Date().getFullYear()} The Boolean Times • All Rights Reserved</p>
-                    <p>For subscriptions, call (555) 867-5309 • For advertising inquiries: ads@booleantimes.com</p>
-                  </div>
-                </div>
-              </>
-            )}
-          </div>
-        </ScrollArea>
-      </div>
-      
-      <Footer />
-      
-      <div className="md:hidden fixed bottom-20 right-4 flex flex-col gap-2">
-        <Button 
-          size="icon" 
-          className="rounded-full bg-white text-black border border-black shadow-md"
-          onClick={handlePrevPage}
-          disabled={currentPage === 1}
-        >
-          <ArrowLeft className="h-4 w-4" />
-        </Button>
-        <Button 
-          size="icon" 
-          className="rounded-full bg-white text-black border border-black shadow-md"
-          onClick={handleNextPage}
-          disabled={currentPage === maxPages}
-        >
-          <ArrowRight className="h-4 w-4" />
-        </Button>
-      </div>
-    </div>
-  );
-};
-
-export default NewspaperView;
+    tags: ["Hollywood", "Technology", "Filmmaking"]
+  },
+  {
+    _id: "15",
+    title: "Key Legislation on Data Privacy Passes with Bipartisan Support",
+    excerpt: "Comprehensive bill establishes new frameworks for personal data protection across digital platforms.",
+    content: "<p>In a rare display of cross-party cooperation, Congress yesterday passed the Digital Rights and Privacy Act (DRPA), the most extensive data protection legislation in the nation's history.</p><p>The bill, which passed with a comfortable majority in both chambers, establishes new legal frameworks governing how companies can collect, store, and monetize personal data, while creating a new enforcement division within the Federal Trade Commission.</p><p>\"This legislation recognizes that personal data is personal property,\" said the bill's co-sponsor. \"For too long, Americans' private information has been treated as a free resource to be harvested without meaningful consent or compensation.\"</p><p>Key provisions of the act include mandatory plain-language privacy policies, the right for consumers to request complete deletion of their data, strict limits on data sharing with third parties, and potential fines of up to 4% of global revenue for serious violations.</p><p>Technology industry representatives expressed mixed reactions, with some larger platforms welcoming the regulatory clarity while smaller companies voiced concerns about compliance costs. The legislation will take effect in 18 months, giving companies time to adapt their practices to the new requirements.</p>",
+    imageUrl: "https://images.unsplash.com/photo-1541872703-74c5e44368f9?ixlib=rb-4.0.3",
+    category: "Politics",
+    readTime: "7 min read",
+    date: "2023-10-10T14:20:00Z",
+    author: {
+      name: "Jennifer Wilson",
+      avatar: "https://randomuser.me/api/portraits/women/62.jpg",
+      role: "Political Correspondent"
+    },
+    tags: ["Politics", "Data Privacy", "Legislation"]
+  },
+  {
+    _id: "16",
+    title: "Revolutionary New Electric Car Achieves 1,000-Mile Range on Single Charge",
+    excerpt: "Startup's prototype vehicle shatters previous records with breakthrough battery technology.",
+    content: "<p>A California-based automotive startup unveiled a prototype electric vehicle yesterday that achieved over 1,000 miles of driving range on a single charge during certified testing, more than doubling the capacity of the current market leaders.</p><p>The vehicle, named \"Horizon,\" utilizes a proprietary solid-state battery technology that represents what many industry analysts are calling the holy grail of electric vehicle development. Unlike conventional lithium-ion batteries, the new cells offer significantly higher energy density while reducing charging time to just 15 minutes for an 80% charge.</p><p>\"This isn't an incremental improvement—it's a generational leap forward,\" said the company's founder and CEO during the demonstration event. \"Range anxiety has consistently been cited as the primary barrier to widespread EV adoption. With this technology, that concern becomes obsolete.\"</p><p>Beyond the revolutionary range, the prototype features a sleek, aerodynamic design that achieves a drag coefficient of just 0.15, the lowest of any production vehicle. The company plans to begin limited production within 18 months, with an initial price point of approximately $85,000 before gradually introducing more affordable models as manufacturing scales up.</p>",
+    imageUrl: "https://images.unsplash.com/photo-1593941707882-a5bba13938c3?ixlib=rb-4.0.3",
+    category: "Car and Bike",
+    readTime: "6 min read",
+    date: "2023-10-09T15:10:00Z",
+    author: {
+      name: "Michael Zhang",
+      avatar: "https://randomuser.me/api/portraits/men/36.jpg",
+      role: "Automotive Technology Reporter"
+    },
+    tags: ["Electric Vehicles", "Technology", "Automotive"]
+  },
+  {
+    _id: "17",
+    title: "Next-Generation Processing Chip Shatters Performance Benchmarks",
+    excerpt: "New semiconductor design achieves unprecedented speeds while reducing power consumption.",
+    content: "<p>A leading semiconductor manufacturer has unveiled its next-generation processing architecture, achieving performance metrics that experts are calling \"revolutionary\" across standard industry benchmarks.</p><p>The new chip, built on an innovative 2-nanometer process, delivers up to 80% better performance than its predecessor while consuming 50% less power—specifications that dramatically exceed industry projections for this technology generation.</p><p>\"We've essentially managed to extend Moore's Law for at least another cycle,\" noted the company's chief technology officer, referring to the observation that transistor density approximately doubles every two years. \"By reimagining the transistor structure at the atomic level, we've overcome what many considered insurmountable physical limitations.\"</p><p>The breakthrough was made possible by a novel manufacturing technique that allows for more precise atomic-level placement of materials, resulting in significantly reduced electron leakage and thermal output. Initial production is scheduled to begin in the fourth quarter, with the first consumer devices incorporating the technology expected to reach markets by mid-next year.</p>",
+    imageUrl: "https://images.unsplash.com/photo-1591799264318-7e6ef8ddb7ea?ixlib=rb-4.0.3",
+    category: "Tech",
+    readTime: "5 min read",
+    date: "2023-10-09T11:35:00Z",
+    author: {
+      name: "Sarah Wang",
+      avatar: "https://randomuser.me/api/portraits/women/92.jpg",
+      role: "Semiconductor Industry Analyst"
+    },
+    tags: ["Technology", "Semiconductors", "Computing"]
+  },
+  {
+    _id: "18",
+    title: "Bollywood Film Sets New Box Office Record in International Markets",
+    excerpt: "Epic historical drama becomes highest-grossing Indian film of all time in overseas territories.",
+    content: "<p>The historical epic \"Dynasty,\" directed by one of India's most acclaimed filmmakers, has shattered box office records for Indian cinema in international markets, grossing over $75 million outside of South Asia in just two weeks of release.</p><p>The film, a sweeping historical drama set in medieval India, has found particular success in markets not traditionally strong for Indian cinema, including North America, where it debuted at number three on the weekend box office charts, and China, where it has already become the highest-grossing Indian film ever released.</p><p>\"What we're seeing is the globalization of Indian storytelling,\" said film industry analyst Rajiv Menon. \"The combination of universal themes, spectacular visuals rendered with world-class technical expertise, and strategic international marketing has created a watershed moment for Bollywood's global commercial potential.\"</p><p>Featuring two of India's biggest stars and produced on a budget of approximately $40 million—the largest ever for an Indian production—the film has received critical acclaim for its storytelling, performances, and visual presentation. Major Hollywood studios are reportedly now in talks with the director about potential international co-productions.</p>",
+    imageUrl: "https://images.unsplash.com/photo-1536440136628-849c177e76a1?ixlib=rb-4.0.3",
+    category: "Bollywood",
+    readTime: "5 min read",
+    date: "2023-10-08T17:50:00Z",
+    author: {
+      name: "Arjun Patel",
+      avatar: "https://randomuser.me/api/portraits/men/85.jpg",
+      role: "Global Cinema Correspondent"
+    },
+    tags: ["Bollywood", "Box Office", "International Cinema"]
+  },
+  {
+    _id: "19",
+    title: "Major Motorcycle Manufacturer Unveils Self-Balancing Technology",
+    excerpt: "Revolutionary system promises to reduce accidents and make riding more accessible.",
+    content: "<p>One of the world's largest motorcycle manufacturers has revealed a groundbreaking gyroscopic stabilization system that prevents bikes from tipping over, even when completely stationary without a kickstand.</p><p>The technology, which will be available on select models starting next year, uses a series of sophisticated gyroscopes and accelerometers to detect minute changes in the motorcycle's orientation, automatically making corrective adjustments to maintain balance in real-time.</p><p>\"This represents perhaps the most significant safety innovation in motorcycling since the helmet,\" said the company's head of research and development. \"Our testing indicates this system could prevent up to 70% of single-vehicle motorcycle accidents, which typically result from loss of balance or traction.\"</p><p>Beyond the safety implications, the technology is expected to make motorcycling accessible to a broader range of riders, including those with physical limitations that might otherwise prevent them from managing a traditional motorcycle's weight and balance requirements. The system can be toggled on and off, allowing experienced riders to maintain complete manual control when desired.</p>",
+    imageUrl: "https://images.unsplash.com/photo-1558981403-c5f9899a28bc?ixlib=rb-4.0.3",
+    category: "Car and Bike",
+    readTime: "4 min read",
+    date: "2023-10-08T13:25:00Z",
+    author: {
+      name: "Thomas Reynolds",
+      avatar: "https://randomuser.me/api/portraits/men/61.jpg",
+      role: "Motorcycle Technology Specialist"
+    },
+    tags: ["Motorcycles", "Technology", "Innovation"]
+  },
+  {
+    _id: "20",
+    title: "Hollywood Studio Secures Record-Breaking Streaming Deal",
+    excerpt: "Multi-billion dollar agreement marks major shift in content distribution strategy.",
+    content: "<p>In what industry analysts are calling a seismic shift in Hollywood's business model, one of the \"Big Five\" studios has signed a unprecedented streaming agreement worth $8.5 billion over five years with a major digital platform.</p><p>The deal—the largest of its kind—gives the streaming service exclusive rights to the studio's entire theatrical slate after movies complete their theatrical runs, replacing the traditional cable and network television windows that have been standard for decades.</p><p>\"This effectively signals the end of the old distribution paradigm,\" noted media analyst Richard Simmons. \"The traditional progression from theaters to home video to premium cable to broadcast is being compressed into essentially two windows: theatrical and streaming.\"</p><p>The agreement, which takes effect in January, includes the studio's existing library of over 3,
