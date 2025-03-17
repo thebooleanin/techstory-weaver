@@ -4,12 +4,13 @@ import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "@/components/ui/button";
-import { Menu, X } from "lucide-react";
+import { Menu, X, Newspaper } from "lucide-react";
 
 const navLinks = [
   { name: "Home", href: "/" },
   { name: "Services", href: "/services" },
   { name: "Articles", href: "/articles" },
+  { name: "Newspaper", href: "/newspaper" },
   { name: "Storytelling", href: "/storytelling" },
   { name: "Social Media", href: "/social-media" },
   { name: "About", href: "/about" },
