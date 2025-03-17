@@ -1,5 +1,6 @@
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -90,6 +91,30 @@
   
   .container {
     @apply px-4 md:px-6 lg:px-8 mx-auto max-w-7xl;
+  }
+  
+  /* Newspaper specific styles */
+  .newspaper-article {
+    font-family: 'Playfair Display', Georgia, serif;
+    column-rule: 1px solid #ddd;
+    background-color: #fff;
+    position: relative;
+  }
+  
+  .newspaper-article p {
+    text-align: justify;
+    hyphens: auto;
+  }
+  
+  .newspaper-article h3 {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-weight: 900;
+  }
+  
+  /* Paper texture effect */
+  .paper-texture {
+    background-color: #fff;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='4' viewBox='0 0 4 4'%3E%3Cpath fill='%23000000' fill-opacity='0.02' d='M1 3h1v1H1V3zm2-2h1v1H3V1z'%3E%3C/path%3E%3C/svg%3E");
   }
   
   /* Enhanced smooth page transitions */

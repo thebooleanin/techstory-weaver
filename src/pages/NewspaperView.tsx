@@ -1,9 +1,11 @@
-
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { motion } from "framer-motion";
-import { Newspaper, Clock, Calendar, ChevronRight, Share2, Facebook, Twitter } from "lucide-react";
+import { 
+  Newspaper, Clock, Calendar, ChevronRight, Share2, 
+  Bookmark, ArrowRight, ArrowLeft, Facebook, Twitter
+} from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 
@@ -18,6 +20,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogTrigger 
+} from "@/components/ui/dialog";
 
 interface Article {
   _id: string;
@@ -245,8 +252,11 @@ const NewspaperView = () => {
       articles: "/api/articles",
     },
   });
-
-  // Load API configuration from site config
+  const [currentPage, setCurrentPage] = useState(1);
+  const [articleInFocus, setArticleInFocus] = useState<Article | null>(null);
+  const maxPages = 3;
+  const scrollRef = useRef<HTMLDivElement>(null);
+  
   useEffect(() => {
     const siteConfig = localStorage.getItem("siteConfig");
     if (siteConfig) {
@@ -262,7 +272,6 @@ const NewspaperView = () => {
     }
   }, []);
 
-  // Fetch articles with React Query
   const {
     data: fetchedArticles,
     isLoading,
@@ -293,16 +302,28 @@ const NewspaperView = () => {
     enabled: !!apiConfig.baseUrl,
   });
 
-  // Use dummy articles if no data is fetched
   const articles = fetchedArticles?.length > 0 ? fetchedArticles : dummyArticles;
   
-  // Split articles for different sections
-  const featuredArticle = articles[0] || null;
-  const secondaryArticles = articles.slice(1, 3) || [];
-  const columnArticles = articles.slice(3, 8) || [];
-  const bottomArticles = articles.slice(8, 12) || [];
+  const itemsPerPage = 4;
+  const displayedArticles = articles.slice(
+    (currentPage - 1) * itemsPerPage, 
+    currentPage * itemsPerPage
+  );
+  
+  const handleNextPage = () => {
+    if (currentPage < maxPages) {
+      setCurrentPage(prev => prev + 1);
+      scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+  
+  const handlePrevPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(prev => prev - 1);
+      scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
 
-  // Format date string
   const formatDate = (dateString: string) => {
     try {
       const date = new Date(dateString);
@@ -317,17 +338,13 @@ const NewspaperView = () => {
     }
   };
 
-  // Extract first paragraph for excerpt
   const getExcerpt = (content: string, maxLength = 150) => {
-    // Remove HTML tags
     const textOnly = content.replace(/<\/?[^>]+(>|$)/g, "");
     
-    // Limit length and add ellipsis if needed
     if (textOnly.length <= maxLength) return textOnly;
     return textOnly.substring(0, maxLength) + "...";
   };
 
-  // Share article function
   const shareArticle = (article: Article, platform: string) => {
     const title = encodeURIComponent(article.title);
     const url = encodeURIComponent(`${window.location.origin}/articles/${article._id}`);
@@ -359,366 +376,267 @@ const NewspaperView = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white text-black">
+    <div className="min-h-screen bg-gray-100 text-black">
       <Helmet>
-        <title>Newspaper | TheBoolean</title>
-        <meta name="description" content="Latest news in newspaper format" />
+        <title>Newspaper | TheBoolean Times</title>
+        <meta name="description" content="Latest news in traditional newspaper format" />
       </Helmet>
       
       <Navbar />
       
-      <ScrollArea className="h-screen">
-        <div className="container mx-auto pt-28 pb-16 px-4 md:px-6">
-          {/* Newspaper Header */}
-          <div className="border-b-4 border-black mb-8">
-            <div className="text-center mb-4">
-              <h1 className="font-serif text-4xl sm:text-5xl md:text-7xl font-bold uppercase tracking-tight mb-2">
-                THE BOOLEAN TIMES
-              </h1>
-              <div className="flex flex-wrap justify-center items-center gap-2 sm:gap-4 text-sm mt-2">
-                <div className="flex items-center">
-                  <Calendar className="h-4 w-4 mr-1" />
-                  {formatDate(new Date().toISOString())}
-                </div>
-                <div className="hidden sm:block">|</div>
-                <div>DAILY EDITION</div>
-                <div className="hidden sm:block">|</div>
-                <div className="flex items-center">
-                  <Newspaper className="h-4 w-4 mr-1" />
-                  Vol. 1, No. 1
+      <div className="pt-20 pb-10 bg-gray-200">
+        <ScrollArea className="h-[calc(100vh-8rem)]" ref={scrollRef}>
+          <div className="container max-w-6xl mx-auto bg-white border border-gray-300 shadow-md py-8 px-4 md:px-10">
+            <div className="border-b-4 border-black mb-8">
+              <div className="text-center mb-4">
+                <h1 className="font-serif text-4xl sm:text-5xl md:text-7xl font-bold uppercase tracking-tight mb-2 text-black">
+                  THE BOOLEAN TIMES
+                </h1>
+                <div className="flex flex-wrap justify-center items-center gap-2 sm:gap-4 text-sm mt-2">
+                  <div className="flex items-center">
+                    <Calendar className="h-4 w-4 mr-1" />
+                    {formatDate(new Date().toISOString())}
+                  </div>
+                  <div className="hidden sm:block">|</div>
+                  <div>DAILY EDITION</div>
+                  <div className="hidden sm:block">|</div>
+                  <div className="flex items-center">
+                    <Newspaper className="h-4 w-4 mr-1" />
+                    Vol. 1, No. {currentPage}
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-          
-          {isLoading ? (
-            <div className="h-96 flex justify-center items-center">
-              <div className="text-2xl font-serif">Loading today's headlines...</div>
-            </div>
-          ) : isError ? (
-            <div className="h-96 flex justify-center items-center flex-col gap-4">
-              <div className="text-xl font-serif">Using sample articles</div>
-              <Button variant="outline" onClick={() => window.location.reload()}>
-                Try Again
-              </Button>
-            </div>
-          ) : (
-            <>
-              {/* Main Content */}
-              <div className="grid grid-cols-1 md:grid-cols-12 gap-8 mb-12">
-                {/* Featured Article */}
-                {featuredArticle ? (
-                  <div className="md:col-span-8 md:border-r border-gray-300 pr-0 md:pr-8">
-                    <div className="group relative">
-                      <Link to={`/articles/${featuredArticle._id}`}>
-                        <motion.div 
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          transition={{ duration: 0.5 }}
-                        >
-                          <h2 className="font-serif text-2xl sm:text-3xl md:text-4xl font-bold mb-4 hover:text-gray-700">
-                            {featuredArticle.title}
-                          </h2>
+            
+            {isLoading ? (
+              <div className="h-96 flex justify-center items-center">
+                <div className="text-2xl font-serif">Loading today's headlines...</div>
+              </div>
+            ) : isError ? (
+              <div className="h-96 flex justify-center items-center flex-col gap-4">
+                <div className="text-xl font-serif">Using sample articles</div>
+                <Button variant="outline" onClick={() => window.location.reload()}>
+                  Try Again
+                </Button>
+              </div>
+            ) : (
+              <>
+                <div className="flex justify-between items-center mb-6 font-serif italic">
+                  <div>Page {currentPage} of {maxPages}</div>
+                  <div className="flex gap-2">
+                    <Button 
+                      variant="ghost" 
+                      className="text-black border-black hover:bg-gray-100" 
+                      onClick={handlePrevPage}
+                      disabled={currentPage === 1}
+                    >
+                      <ArrowLeft className="h-4 w-4" /> Previous
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      className="text-black border-black hover:bg-gray-100" 
+                      onClick={handleNextPage}
+                      disabled={currentPage === maxPages}
+                    >
+                      Next <ArrowRight className="h-4 w-4 ml-1" />
+                    </Button>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+                  {displayedArticles.map((article, index) => (
+                    <motion.div 
+                      key={article._id}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ duration: 0.5, delay: index * 0.1 }}
+                      className="relative border border-gray-200 p-4 newspaper-article"
+                    >
+                      <div className="mb-3 flex justify-between items-start">
+                        <h3 className="font-serif text-xl font-bold leading-tight">
+                          {article.title}
+                        </h3>
+                        
+                        <div className="flex gap-1">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="sm" className="h-8 w-8 rounded-full p-0">
+                                <Share2 className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => shareArticle(article, "whatsapp")}>
+                                Share on WhatsApp
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => shareArticle(article, "facebook")}>
+                                <Facebook className="h-4 w-4 mr-2" /> Facebook
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => shareArticle(article, "twitter")}>
+                                <Twitter className="h-4 w-4 mr-2" /> Twitter
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => shareArticle(article, "copy")}>
+                                Copy Link
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                           
-                          <div className="mb-4 relative">
-                            <img 
-                              src={featuredArticle.imageUrl || "/placeholder.svg"} 
-                              alt={featuredArticle.title}
-                              className="w-full h-auto grayscale hover:grayscale-0 transition-all duration-500"
+                          <Dialog>
+                            <DialogTrigger asChild>
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                className="h-8 w-8 rounded-full p-0"
+                                onClick={() => setArticleInFocus(article)}
+                              >
+                                <Bookmark className="h-4 w-4" />
+                              </Button>
+                            </DialogTrigger>
+                            <DialogContent className="max-w-3xl h-[80vh] overflow-auto">
+                              <div className="font-serif p-4">
+                                <h2 className="text-2xl font-bold mb-4">{article.title}</h2>
+                                <div className="flex items-center justify-between mb-4 text-sm">
+                                  <div>By {article.author.name}</div>
+                                  <div className="flex items-center">
+                                    <Clock className="h-4 w-4 mr-1" />
+                                    {article.readTime}
+                                  </div>
+                                </div>
+                                
+                                {article.imageUrl && (
+                                  <div className="mb-4">
+                                    <img
+                                      src={article.imageUrl}
+                                      alt={article.title}
+                                      className="w-full h-auto grayscale"
+                                      onError={(e) => {
+                                        (e.target as HTMLImageElement).src = "/placeholder.svg";
+                                      }}
+                                    />
+                                  </div>
+                                )}
+                                
+                                <div 
+                                  className="prose prose-stone max-w-none"
+                                  dangerouslySetInnerHTML={{ __html: article.content }}
+                                />
+                                
+                                <div className="mt-4 flex justify-between items-center">
+                                  <div className="flex gap-2">
+                                    {article.tags.map(tag => (
+                                      <span key={tag} className="bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded">
+                                        {tag}
+                                      </span>
+                                    ))}
+                                  </div>
+                                  
+                                  <div className="flex gap-2">
+                                    <Button 
+                                      variant="outline" 
+                                      size="sm"
+                                      onClick={() => shareArticle(article, "copy")}
+                                    >
+                                      <Share2 className="h-4 w-4 mr-2" /> Share
+                                    </Button>
+                                  </div>
+                                </div>
+                              </div>
+                            </DialogContent>
+                          </Dialog>
+                        </div>
+                      </div>
+                      
+                      <div className="mb-2">
+                        <span className="bg-black text-white text-xs px-2 py-1 uppercase font-medium">
+                          {article.category}
+                        </span>
+                      </div>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        {index === 0 && article.imageUrl && (
+                          <div className="md:col-span-1">
+                            <img
+                              src={article.imageUrl}
+                              alt={article.title}
+                              className="w-full h-auto grayscale"
                               onError={(e) => {
                                 (e.target as HTMLImageElement).src = "/placeholder.svg";
                               }}
                             />
                           </div>
-                          
-                          <div className="text-sm mb-3 flex items-center justify-between">
-                            <span className="font-medium">By {featuredArticle.author?.name || "Staff Reporter"}</span>
-                            <span className="flex items-center gap-1">
-                              <Clock className="h-3 w-3" />
-                              {featuredArticle.readTime}
-                            </span>
-                          </div>
-                          
-                          <p className="font-serif text-base leading-relaxed">
-                            {getExcerpt(featuredArticle.content || featuredArticle.excerpt, 400)}
+                        )}
+                        
+                        <div className={`${index === 0 && article.imageUrl ? 'md:col-span-2' : 'md:col-span-3'}`}>
+                          <p className="font-serif text-base leading-snug text-justify">
+                            {getExcerpt(article.content || article.excerpt, index === 0 ? 400 : 250)}
                           </p>
                           
-                          <div className="mt-4 font-serif text-sm font-medium italic flex items-center">
-                            Continue reading 
-                            <ChevronRight className="h-4 w-4 ml-1" />
+                          <div className="flex justify-between items-center mt-3 text-xs">
+                            <span className="italic">Continued on page {currentPage + 1}...</span>
+                            <span className="flex items-center">
+                              <Clock className="h-3 w-3 mr-1" />
+                              {article.readTime}
+                            </span>
                           </div>
-                        </motion.div>
-                      </Link>
-                      
-                      {/* Share button */}
-                      <div className="absolute top-0 right-0">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="rounded-full h-8 w-8">
-                              <Share2 className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => shareArticle(featuredArticle, "whatsapp")}>
-                              Share on WhatsApp
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => shareArticle(featuredArticle, "facebook")}>
-                              Share on Facebook
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => shareArticle(featuredArticle, "twitter")}>
-                              Share on Twitter
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => shareArticle(featuredArticle, "copy")}>
-                              Copy Link
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </div>
-                    </div>
-                  </div>
-                ) : null}
-                
-                {/* Secondary Articles */}
-                <div className="md:col-span-4">
-                  {secondaryArticles.map((article, index) => (
-                    <motion.div 
-                      key={article._id}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.3, delay: index * 0.1 }}
-                      className={`relative mb-6 ${index !== secondaryArticles.length - 1 ? "pb-6 border-b border-gray-200" : ""}`}
-                    >
-                      <Link to={`/articles/${article._id}`}>
-                        <h3 className="font-serif text-lg sm:text-xl font-bold mb-2 hover:text-gray-700 pr-8">
-                          {article.title}
-                        </h3>
-                        
-                        <p className="font-serif text-sm mb-2">
-                          {getExcerpt(article.content || article.excerpt, 120)}
-                        </p>
-                        
-                        <div className="text-xs text-gray-600 flex items-center justify-between">
-                          <span>By {article.author?.name || "Staff Reporter"}</span>
-                          <span className="hidden sm:inline">{formatDate(article.date)}</span>
                         </div>
-                      </Link>
-                      
-                      {/* Share button */}
-                      <div className="absolute top-0 right-0">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="rounded-full h-8 w-8">
-                              <Share2 className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => shareArticle(article, "whatsapp")}>
-                              Share on WhatsApp
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => shareArticle(article, "facebook")}>
-                              Share on Facebook
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => shareArticle(article, "twitter")}>
-                              Share on Twitter
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => shareArticle(article, "copy")}>
-                              Copy Link
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
                       </div>
                     </motion.div>
                   ))}
                 </div>
-              </div>
-              
-              <Separator className="my-8 border-black" />
-              
-              {/* Columns Section */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mb-12">
-                {columnArticles.map((article, index) => (
-                  <motion.div 
-                    key={article._id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3, delay: index * 0.1 }}
-                    className="relative border-r-0 md:border-r last:border-r-0 border-gray-300 pr-0 md:pr-4"
-                  >
-                    <Link to={`/articles/${article._id}`}>
-                      <div className="font-serif">
-                        <div className="mb-3">
-                          <span className="bg-black text-white px-3 py-1 text-xs uppercase">
-                            {article.category || "News"}
-                          </span>
-                        </div>
-                        
-                        <h4 className="text-lg font-bold mb-3 hover:text-gray-700 pr-8">
-                          {article.title}
-                        </h4>
-                        
-                        <p className="text-sm leading-relaxed mb-3">
-                          {getExcerpt(article.content || article.excerpt, 120)}
-                        </p>
-                        
-                        <div className="text-xs text-gray-600">
-                          By {article.author?.name || "Staff Reporter"}
-                        </div>
-                      </div>
-                    </Link>
-                    
-                    {/* Share button */}
-                    <div className="absolute top-0 right-0">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="rounded-full h-8 w-8">
-                            <Share2 className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => shareArticle(article, "whatsapp")}>
-                            Share on WhatsApp
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => shareArticle(article, "facebook")}>
-                            Share on Facebook
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => shareArticle(article, "twitter")}>
-                            Share on Twitter
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => shareArticle(article, "copy")}>
-                            Copy Link
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                
+                <div className="border-t-2 border-black pt-4 mt-8">
+                  <div className="text-center mb-4">
+                    <h4 className="font-serif text-lg font-bold uppercase mb-2">CLASSIFIEDS</h4>
+                  </div>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs border-b border-gray-300 pb-4 mb-4">
+                    <div className="border p-2">
+                      <p className="font-bold">FOR SALE</p>
+                      <p>Vintage typewriter, excellent condition. Call 555-1234 for details and pricing.</p>
                     </div>
-                  </motion.div>
-                ))}
-              </div>
-              
-              <Separator className="my-8 border-black" />
-              
-              {/* Bottom Articles Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                {bottomArticles.map((article, index) => (
-                  <motion.div 
-                    key={article._id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3, delay: index * 0.1 }}
-                    className="relative"
-                  >
-                    <Link to={`/articles/${article._id}`}>
-                      <div className="font-serif">
-                        <div className="mb-3 aspect-[4/3] overflow-hidden">
-                          <img 
-                            src={article.imageUrl || "/placeholder.svg"} 
-                            alt={article.title}
-                            className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-500"
-                            onError={(e) => {
-                              (e.target as HTMLImageElement).src = "/placeholder.svg";
-                            }}
-                          />
-                        </div>
-                        
-                        <h5 className="text-base font-bold mb-2 hover:text-gray-700 line-clamp-2 pr-8">
-                          {article.title}
-                        </h5>
-                        
-                        <p className="text-xs leading-relaxed line-clamp-3">
-                          {getExcerpt(article.content || article.excerpt, 80)}
-                        </p>
-                      </div>
-                    </Link>
-                    
-                    {/* Share button */}
-                    <div className="absolute top-0 right-0">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="rounded-full h-8 w-8">
-                            <Share2 className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => shareArticle(article, "whatsapp")}>
-                            Share on WhatsApp
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => shareArticle(article, "facebook")}>
-                            Share on Facebook
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => shareArticle(article, "twitter")}>
-                            Share on Twitter
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => shareArticle(article, "copy")}>
-                            Copy Link
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                    <div className="border p-2">
+                      <p className="font-bold">JOBS AVAILABLE</p>
+                      <p>Newspaper seeks junior reporters. Experience with investigative journalism preferred.</p>
                     </div>
-                  </motion.div>
-                ))}
-              </div>
-              
-              {/* Newspaper Weather and Ads Section */}
-              <div className="mt-12 pt-8 border-t-2 border-black">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  {/* Weather Section */}
-                  <div className="md:col-span-1 p-4 border border-gray-300">
-                    <h3 className="font-serif text-xl font-bold mb-4 uppercase text-center">Weather</h3>
-                    <div className="flex justify-center mb-2">
-                      <img 
-                        src="https://images.unsplash.com/photo-1592210454359-9043f067919b?w=400" 
-                        alt="Weather" 
-                        className="w-16 h-16 grayscale"
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).src = "/placeholder.svg";
-                        }}
-                      />
+                    <div className="border p-2">
+                      <p className="font-bold">ANNOUNCEMENTS</p>
+                      <p>Town hall meeting this Thursday at 7pm. All residents encouraged to attend.</p>
                     </div>
-                    <div className="text-center">
-                      <p className="text-2xl font-bold">72°F</p>
-                      <p className="text-sm">Partly Cloudy</p>
-                      <p className="text-xs mt-2">Tomorrow: 68°F - 75°F</p>
+                    <div className="border p-2">
+                      <p className="font-bold">SERVICES</p>
+                      <p>Professional photography for all occasions. Reasonable rates. Portfolio available.</p>
                     </div>
                   </div>
                   
-                  {/* Classifieds Section */}
-                  <div className="md:col-span-2 p-4 border border-gray-300">
-                    <h3 className="font-serif text-xl font-bold mb-4 uppercase text-center">Classifieds</h3>
-                    <div className="grid grid-cols-2 gap-4 text-xs">
-                      <div className="border-b pb-2">
-                        <p className="font-bold">FOR SALE</p>
-                        <p>Vintage typewriter, excellent condition. Call 555-1234.</p>
-                      </div>
-                      <div className="border-b pb-2">
-                        <p className="font-bold">JOBS</p>
-                        <p>Local newspaper seeking journalists. Experience required.</p>
-                      </div>
-                      <div className="border-b pb-2">
-                        <p className="font-bold">REAL ESTATE</p>
-                        <p>Charming cottage near downtown. Open house Sunday 2-4pm.</p>
-                      </div>
-                      <div className="border-b pb-2">
-                        <p className="font-bold">SERVICES</p>
-                        <p>Professional photography for all occasions. Reasonable rates.</p>
-                      </div>
-                    </div>
+                  <div className="font-serif text-xs text-center">
+                    <p>© {new Date().getFullYear()} The Boolean Times • All Rights Reserved</p>
+                    <p>For subscriptions, call (555) 867-5309 • For advertising inquiries: ads@booleantimes.com</p>
                   </div>
                 </div>
-              </div>
-              
-              {/* View More Articles Button */}
-              <div className="mt-10 text-center">
-                <Link to="/articles">
-                  <Button variant="outline" className="border-black hover:bg-black hover:text-white transition-colors">
-                    View All Articles
-                  </Button>
-                </Link>
-              </div>
-            </>
-          )}
-        </div>
-      </ScrollArea>
+              </>
+            )}
+          </div>
+        </ScrollArea>
+      </div>
       
       <Footer />
+      
+      <div className="md:hidden fixed bottom-20 right-4 flex flex-col gap-2">
+        <Button 
+          size="icon" 
+          className="rounded-full bg-white text-black border border-black shadow-md"
+          onClick={handlePrevPage}
+          disabled={currentPage === 1}
+        >
+          <ArrowLeft className="h-4 w-4" />
+        </Button>
+        <Button 
+          size="icon" 
+          className="rounded-full bg-white text-black border border-black shadow-md"
+          onClick={handleNextPage}
+          disabled={currentPage === maxPages}
+        >
+          <ArrowRight className="h-4 w-4" />
+        </Button>
+      </div>
     </div>
   );
 };
