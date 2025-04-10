@@ -31,4 +31,4 @@ jobs:
 
       - name: Upload build to server
         run: |
-          rsync -avz --delete -e "ssh -o StrictHostKeyChecking=no" dist/ ubuntu@13.232.122.214:/home/ubuntu/techstory-weaver-frontend/
+          rsync -avz --delete -e "ssh -o StrictHostKeyChecking=no" dist/ ubuntu@13.232.122.214:/home/ubuntu/techstory-weaver/
