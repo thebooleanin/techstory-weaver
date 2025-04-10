@@ -1,0 +1,32 @@
+name: Deploying theboolean frontend
+
+on:
+  push:
+    branches:
+      - main  # change this if your main branch has a different name
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          echo "${{ secrets.SSH_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/id_rsa
+          chmod 644 ~/.ssh/known_hosts
+
+      - name: Deploy via SSH
+        run: |
+          ssh ubuntu@13.232.122.214 << 'EOF'
+            cd ~/techstory-weaver
+            git pull origin main
+            pnpm install
+            pnpm build
+            pm2 restart techstory-weaver
+          EOF
