@@ -26,6 +26,8 @@ jobs:
           corepack enable
           pnpm install
           pnpm build
+          sudo rm -rf /var/www/html/*
+          sudo cp -r dist/* /var/www/html/
 
       - name: Upload build to server
         run: |
