@@ -47,7 +47,7 @@ const AdminLogin = () => {
 
     try {
       // Make API request
-      const response = await fetch('http://13.232.139.240:5000/api/auth/login', {
+      const response = await fetch('http://13.232.122.214:5000/api/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

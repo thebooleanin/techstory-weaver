@@ -190,7 +190,7 @@ const NewspaperView = () => {
       articles: string;
     };
   }>({
-    baseUrl: "http://13.232.139.240:5000",
+    baseUrl: "http://13.232.122.214:5000",
     endpoints: {
       articles: "/api/articles",
     },

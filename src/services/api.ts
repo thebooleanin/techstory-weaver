@@ -2,7 +2,7 @@
 import { Story, StoryFormData } from '@/types/story';
 
 // Base URL for the API
-const API_BASE_URL = 'http://13.232.139.240:5000/api';
+const API_BASE_URL = 'http://13.232.122.214:5000/api';
 
 // Fetch all stories with optional pagination
 export const fetchStories = async (page = 1, limit = 10, customUrl?: string): Promise<Story[]> => {

@@ -68,7 +68,7 @@ const Index = () => {
     const loadStories = async () => {
       try {
         setIsLoading(true);
-        const apiUrl = siteConfig?.apiEndpoints?.stories || 'http://13.232.139.240:5000/api/stories';
+        const apiUrl = siteConfig?.apiEndpoints?.stories || 'http://13.232.122.214:5000/api/stories';
         const stories = await fetchStories(apiUrl);
         
         // Filter featured stories (up to 3)
