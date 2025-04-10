@@ -1,5 +1,4 @@
-name: Deploying techstory-weaver (frontend)
-
+name: Deploying techstory-weaver-ui
 on:
   push:
     branches:
