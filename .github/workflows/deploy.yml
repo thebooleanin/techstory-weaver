@@ -1,9 +1,9 @@
-name: Deploying theboolean frontend
+name: Deploying techstory-weaver
 
 on:
   push:
     branches:
-      - main  # change this if your main branch has a different name
+      - main
 
 jobs:
   deploy:
@@ -17,12 +17,11 @@ jobs:
         run: |
           mkdir -p ~/.ssh
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          echo "${{ secrets.SSH_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
           chmod 600 ~/.ssh/id_rsa
-          
-          # safer: keyscan instead of hardcoded secret
-          ssh-keyscan -H 13.232.122.214 >> ~/.ssh/known_hosts
+          chmod 644 ~/.ssh/known_hosts
 
-      - name: Deploy via SSH
+      - name: Deploy to Server
         run: |
           ssh -o StrictHostKeyChecking=no ubuntu@13.232.122.214 << 'EOF'
             cd ~/techstory-weaver
