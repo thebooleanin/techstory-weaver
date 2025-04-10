@@ -21,14 +21,30 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           chmod 644 ~/.ssh/known_hosts
 
-      - name: Install Node & Build
+      - name: Deploy and Build on Server
         run: |
-          corepack enable
-          pnpm install
-          pnpm build
-          sudo rm -rf /var/www/html/*
-          sudo cp -r dist/* /var/www/html/
+          ssh -o StrictHostKeyChecking=no ubuntu@13.232.122.214 << 'EOF'
+            set -e  # stop on error
 
-      - name: Upload build to server
-        run: |
-          rsync -avz --delete -e "ssh -o StrictHostKeyChecking=no" dist/ ubuntu@13.232.122.214:/home/ubuntu/techstory-weaver/
+            # Go to project directory
+            cd ~/techstory-weaver
+
+            # Pull latest changes
+            git pull origin main
+
+            # Load Node (optional if using nvm)
+            export NVM_DIR="$HOME/.nvm"
+            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+
+            # Install dependencies and build
+            corepack enable
+            pnpm install
+            pnpm build
+
+            # Set permissions
+            sudo chown -R www-data:www-data dist
+            sudo chmod -R 755 dist
+
+            # Reload Nginx if needed
+            sudo systemctl reload nginx
+          EOF
