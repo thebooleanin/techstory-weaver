@@ -10,13 +10,13 @@ export default defineConfig(({ mode }) => ({
     proxy: {
       // Proxy API requests to your backend
       "/api": {
-         target: "http://13.232.122.214:5000", // Backend URL
+         target: "http://13.200.161.40:5000", // Backend URL
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, ""), // Remove /api prefix
       },
       // Proxy static file requests to your backend
       "/uploads": {
-         target: "http://13.232.122.214:5000", // Backend URL
+         target: "http://13.200.161.40:5000", // Backend URL
         changeOrigin: true,
       },
     },

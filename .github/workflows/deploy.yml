@@ -22,7 +22,7 @@ jobs:
 
       - name: Deploy and Build on Server
         run: |
-          ssh -o StrictHostKeyChecking=no ubuntu@13.232.122.214 << 'EOF'
+          ssh -o StrictHostKeyChecking=no ubuntu@13.200.161.40 << 'EOF'
             set -e  # stop on error
 
             # Go to project directory

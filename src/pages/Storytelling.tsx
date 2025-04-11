@@ -72,7 +72,7 @@ const Storytelling = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [activeCategory, setActiveCategory] = useState("All");
   const [activeTab, setActiveTab] = useState("recorded");
-  const [apiUrl, setApiUrl] = useState('http://13.232.122.214:5000/api');
+  const [apiUrl, setApiUrl] = useState('http://13.200.161.40:5000/api');
 
   // Fetch stories from API
   const { data: stories = [], isLoading, error, refetch } = useQuery({
