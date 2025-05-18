@@ -8,6 +8,7 @@ import { useToast } from '@/hooks/use-toast';
 
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import MobileTabNav from '@/components/MobileTabNav';
 import ArticleCard from '@/components/ArticleCard';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -599,6 +600,7 @@ const Articles = () => {
       </section>
       
       <Footer />
+      <MobileTabNav />
     </div>
   );
 };

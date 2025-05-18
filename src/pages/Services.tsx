@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import MobileTabNav from '@/components/MobileTabNav';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -603,6 +604,7 @@ const Services = () => {
       </section>
       
       <Footer />
+      <MobileTabNav />
     </div>
   );
 };

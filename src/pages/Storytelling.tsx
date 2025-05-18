@@ -15,6 +15,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { ArrowRight, Play, Pause, SkipBack, SkipForward, Volume2, VolumeX, Headphones, FileAudio, Upload, Radio } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import MobileTabNav from '@/components/MobileTabNav';
 import AudioPlayer from '@/components/storytelling/AudioPlayer';
 import { fetchStories } from '@/services/api';
 import { Story } from '@/types/story';
@@ -503,6 +504,7 @@ const Storytelling = () => {
       </section>
       
       <Footer />
+      <MobileTabNav />
     </div>
   );
 };

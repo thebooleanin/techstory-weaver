@@ -5,6 +5,7 @@ import Hero from '@/components/Hero';
 import ArticleCard from '@/components/ArticleCard';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import MobileTabNav from '@/components/MobileTabNav';
 import { ArrowRight, BookOpen, Headphones, Calendar, TrendingUp, Award, Users, Star } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -355,6 +356,8 @@ const Index = () => {
       </section>
       
       <Footer />
+      {/* Mobile Tab Navigation */}
+      <MobileTabNav />
     </div>
   );
 };
