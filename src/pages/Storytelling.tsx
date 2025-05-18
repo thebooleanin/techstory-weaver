@@ -72,7 +72,7 @@ const Storytelling = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [activeCategory, setActiveCategory] = useState("All");
   const [activeTab, setActiveTab] = useState("recorded");
-  const [apiUrl, setApiUrl] = useState('http://13.200.161.40:5000/api');
+  const [apiUrl, setApiUrl] = useState(`${import.meta.env.VITE_API_BASE_URL}/api`);
 
   // Fetch stories from API
   const { data: stories = [], isLoading, error, refetch } = useQuery({

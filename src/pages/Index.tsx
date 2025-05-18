@@ -68,7 +68,7 @@ const Index = () => {
     const loadStories = async () => {
       try {
         setIsLoading(true);
-        const apiUrl = siteConfig?.apiEndpoints?.stories || 'http://13.200.161.40:5000/api/stories';
+        const apiUrl = siteConfig?.apiEndpoints?.stories || `${import.meta.env.VITE_API_BASE_URL}/api/stories`;
         const stories = await fetchStories(apiUrl);
         
         // Filter featured stories (up to 3)

@@ -60,7 +60,7 @@ const Register = () => {
 
     try {
       // Make API request
-      const response = await fetch('http://13.200.161.40:5000/api/auth/signup', {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/auth/signup`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

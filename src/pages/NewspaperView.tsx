@@ -190,7 +190,7 @@ const NewspaperView = () => {
       articles: string;
     };
   }>({
-    baseUrl: "http://13.200.161.40:5000",
+    baseUrl: import.meta.env.VITE_API_BASE_URL,
     endpoints: {
       articles: "/api/articles",
     },

@@ -47,7 +47,7 @@ const AdminLogin = () => {
 
     try {
       // Make API request
-      const response = await fetch('http://13.200.161.40:5000/api/auth/login', {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

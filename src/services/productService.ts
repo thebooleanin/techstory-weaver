@@ -2,7 +2,9 @@
 import { Product, ProductFormData } from '@/types/product';
 
 // Base URL for the API
-const API_BASE_URL = 'http://13.200.161.40:5000/api';
+import { getApiUrl } from '@/config/api';
+
+const API_BASE_URL = getApiUrl('api');
 
 // Fetch all products with optional filtering
 export const fetchProducts = async (type?: string): Promise<Product[]> => {

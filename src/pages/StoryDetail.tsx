@@ -25,7 +25,7 @@ const StoryDetail = () => {
   }, []);
 
   // Get API URL from config or use default
-  const apiUrl = siteConfig?.apiEndpoints?.stories || 'http://13.200.161.40:5000/api';
+  const apiUrl = siteConfig?.apiEndpoints?.stories || `${import.meta.env.VITE_API_BASE_URL}/api`;
 
   const { data: story, isLoading, error } = useQuery({
     queryKey: ['story', id],
