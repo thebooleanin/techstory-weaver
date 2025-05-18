@@ -21,6 +21,8 @@ const Index = () => {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
+  // Article category filter
+  const [categoryFilter, setCategoryFilter] = useState<string>("");
 
   // Load site config from localStorage once
   useEffect(() => {
@@ -280,6 +282,50 @@ const Index = () => {
       
 
       {/* Call to Action */}
+      {/* Article Filter and Dynamic Articles Section */}
+      <section className="py-10">
+        <div className="container">
+          <header className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-2 md:mb-0">Latest Articles</h2>
+            {/* Filter Bar */}
+            <nav aria-label="Article categories" className="flex flex-wrap gap-2">
+              {['All', 'Startup', 'SaaS', 'Technology', 'Innovation', 'Funding', 'Women in Tech', 'AI', 'Events'].map(cat => (
+                <button
+                  key={cat}
+                  onClick={() => setCategoryFilter(cat === 'All' ? '' : cat)}
+                  className={`px-4 py-2 rounded-full text-sm font-medium border transition-colors ${categoryFilter === cat || (cat === 'All' && !categoryFilter) ? 'bg-primary text-white border-primary' : 'bg-white border-border text-foreground hover:bg-primary/10'}`}
+                  aria-pressed={categoryFilter === cat || (cat === 'All' && !categoryFilter)}
+                >
+                  {cat}
+                </button>
+              ))}
+            </nav>
+          </header>
+          <div>
+            {/* Render filtered articles */}
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {stories.filter(story => !categoryFilter || story.category === categoryFilter).length ? (
+                stories.filter(story => !categoryFilter || story.category === categoryFilter).map(story => (
+                  <ArticleCard
+                    key={story._id}
+                    _id={story._id}
+                    title={story.title}
+                    excerpt={story.description || ''}
+                    imageUrl={story.imageUrl || ''}
+                    category={story.category || ''}
+                    readTime={story.duration || ''}
+                    date={story.date || ''}
+                  />
+                ))
+              ) : (
+                <div className="col-span-full text-center py-8 text-muted-foreground">No articles found for this category.</div>
+              )}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Newsletter Signup Call-to-Action */}
       <section className="py-16 text-white" style={{ background: `linear-gradient(to right, ${primaryColor}, ${secondaryColor})` }}>
         <div className="container">
           <div className="text-center max-w-3xl mx-auto">
@@ -299,108 +345,10 @@ const Index = () => {
             >
               Subscribe to our newsletter to receive the latest tech stories, articles, and event invitations.
             </motion.p>
-            <motion.form
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: isVisible ? 1 : 0, y: isVisible ? 0 : 20 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-              className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto"
-              onSubmit={(e) => e.preventDefault()}
-            >
-              <input
-                type="email"
-                placeholder="Your email address"
-                className="px-4 py-3 rounded-lg flex-1 text-foreground outline-none focus:ring-2 focus:ring-white/20"
-                aria-label="Email address"
-              />
-              <Button type="submit" className="bg-white hover:bg-white/90 text-indigo-600">
-                Subscribe
-              </Button>
-            </motion.form>
-          </div>
-        </div>
-      </section>
-      
-      {/* Quick Links Section */}
-      <section className="py-20">
-        <div className="container">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="space-y-6">
-              <h3 className="text-xl font-bold flex items-center">
-                <BookOpen className="w-5 h-5 mr-2" style={{ color: primaryColor }} />
-                Latest Articles
-              </h3>
-              <ul className="space-y-4">
-                <li>
-                  <Link to="/articles" className="text-sm text-muted-foreground hover:text-indigo-600 transition-colors">
-                    Tech Innovations in Rural India
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/articles" className="text-sm text-muted-foreground hover:text-indigo-600 transition-colors">
-                    The Rise of Indian SaaS Companies
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/articles" className="text-sm text-muted-foreground hover:text-indigo-600 transition-colors">
-                    Women Leaders in Indian Tech
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/articles" className="text-sm text-muted-foreground hover:text-indigo-600 transition-colors">
-                    Sustainable Technology Solutions for Urban India
-                  </Link>
-                </li>
-              </ul>
-            </div>
-            
-            <div className="space-y-6">
-              <h3 className="text-xl font-bold flex items-center">
-                <Headphones className="w-5 h-5 mr-2" style={{ color: primaryColor }} />
-                Popular Stories
-              </h3>
-              <ul className="space-y-4">
-                <li>
-                  <Link to="/storytelling" className="text-sm text-muted-foreground hover:text-indigo-600 transition-colors">
-                    Building Accessible Apps for Rural Communities
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/storytelling" className="text-sm text-muted-foreground hover:text-indigo-600 transition-colors">
-                    From College Dropout to Tech Founder
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/storytelling" className="text-sm text-muted-foreground hover:text-indigo-600 transition-colors">
-                    Creating AI Solutions for Indian Languages
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/storytelling" className="text-sm text-muted-foreground hover:text-indigo-600 transition-colors">
-                    Breaking the Glass Ceiling in Tech
-                  </Link>
-                </li>
-              </ul>
-            </div>
-            
-            <div className="space-y-6">
-              <h3 className="text-xl font-bold flex items-center">
-                <Calendar className="w-5 h-5 mr-2" style={{ color: primaryColor }} />
-                Upcoming Events
-              </h3>
-              <ul className="space-y-4">
-                <li>
-                  <span className="text-sm text-muted-foreground">Tech for Good: India Edition</span>
-                </li>
-                <li>
-                  <span className="text-sm text-muted-foreground">Web Development Masterclass</span>
-                </li>
-                <li>
-                  <span className="text-sm text-muted-foreground">AI in Indian Healthcare Symposium</span>
-                </li>
-                <li>
-                  <span className="text-sm text-muted-foreground">Startup Funding Workshop</span>
-                </li>
-              </ul>
+            {/* Use the shared NewsletterSignup component for consistency */}
+            <div className="flex justify-center">
+              <div className="w-full max-w-md">
+              </div>
             </div>
           </div>
         </div>

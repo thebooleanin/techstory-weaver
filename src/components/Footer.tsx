@@ -5,9 +5,9 @@ import { Mail, Phone, MapPin, Github, Twitter, Linkedin, Instagram } from 'lucid
 
 const Footer = () => {
   return (
-    <footer className="bg-muted py-16 mt-20">
-      <div className="container">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+    <footer className="bg-muted py-10 mt-20">
+      <div className="container px-4">
+        <div className="flex flex-col gap-10 md:grid md:grid-cols-2 lg:grid-cols-4 md:gap-8">
           {/* Column 1: Logo and About */}
           <div className="space-y-4">
             <div className="text-xl font-bold tracking-tight">
@@ -127,8 +127,9 @@ const Footer = () => {
         </div>
 
         {/* Newsletter Signup */}
-        <div className="mb-10">
-          <NewsletterSignup />
+        <div className="w-full max-w-lg mx-auto mb-10 bg-white rounded-xl shadow-lg p-5 flex flex-col gap-2">
+          <h4 className="font-semibold text-center text-lg mb-2 text-primary">Subscribe to our newsletter</h4>
+          <NewsletterSignup className="w-full" />
         </div>
         <div className="border-t border-border/50 mt-10 pt-6 flex flex-col md:flex-row justify-between items-center">
           <p className="text-muted-foreground text-sm">
