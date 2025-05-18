@@ -17,38 +17,53 @@ import { Story } from '@/types/story';
 const Index = () => {
   const [isVisible, setIsVisible] = useState(false);
   const [siteConfig, setSiteConfig] = useState<any>(null);
-  const [featuredArticles, setFeaturedArticles] = useState([
-    {
-      _id: '1',
-      title: 'The Future of AI in Indian Healthcare Systems',
-      excerpt: 'How artificial intelligence is revolutionizing healthcare delivery across urban and rural India.',
-      imageUrl: 'https://images.unsplash.com/photo-1576091160550-2173dba999ef?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1674&q=80',
-      category: 'Healthcare',
-      readTime: '6 min',
-      date: 'May 15, 2023'
-    },
-    {
-      _id: '2',
-      title: 'Building Sustainable Smart Cities: The Bangalore Model',
-      excerpt: 'How India\'s tech capital is implementing green technology for urban development and sustainability.',
-      imageUrl: 'https://images.unsplash.com/photo-1599930113854-d6d7fd522214?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1674&q=80',
-      category: 'Smart Cities',
-      readTime: '4 min',
-      date: 'June 2, 2023'
-    },
-    {
-      _id: '3',
-      title: 'The Rise of FinTech Startups in Tier-2 Indian Cities',
-      excerpt: 'How financial technology is creating economic opportunities beyond metropolitan areas.',
-      imageUrl: 'https://images.unsplash.com/photo-1601597111158-2fceff292cdc?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1674&q=80',
-      category: 'FinTech',
-      readTime: '5 min',
-      date: 'June 10, 2023'
+  const [stories, setStories] = useState<Story[]>([]);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Load site config from localStorage once
+  useEffect(() => {
+    const config = localStorage.getItem('siteConfig');
+    if (config) {
+      setSiteConfig(JSON.parse(config));
     }
-  ]);
-  
-  const [featuredStories, setFeaturedStories] = useState<Story[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  }, []);
+
+  // Fetch stories when siteConfig and page change
+  useEffect(() => {
+    const fetchStoriesPage = async () => {
+      if (!siteConfig?.apiEndpoints?.stories || isLoading || !hasMore) return;
+      setIsLoading(true);
+      try {
+        const apiUrl = siteConfig.apiEndpoints.stories;
+        const newStories = await fetchStories(page, 10, apiUrl);
+        setStories(prev => page === 1 ? newStories : [...prev, ...newStories]);
+        setHasMore(newStories.length === 10);
+      } catch (e) {
+        setHasMore(false);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchStoriesPage();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [siteConfig?.apiEndpoints?.stories, page]);
+
+  // Infinite scroll handler
+  useEffect(() => {
+    const handleScroll = () => {
+      if (
+        window.innerHeight + window.scrollY + 100 >= document.body.offsetHeight &&
+        !isLoading && hasMore
+      ) {
+        setPage(prev => prev + 1);
+      }
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [isLoading, hasMore]);
+
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -64,30 +79,8 @@ const Index = () => {
       setSiteConfig(JSON.parse(config));
     }
     
-    // Fetch stories from API
-    const loadStories = async () => {
-      try {
-        setIsLoading(true);
-        const apiUrl = siteConfig?.apiEndpoints?.stories || `${import.meta.env.VITE_API_BASE_URL}/api/stories`;
-        const stories = await fetchStories(apiUrl);
-        
-        // Filter featured stories (up to 3)
-        const featured = stories
-          .filter(story => story.featured)
-          .slice(0, 3);
-          
-        setFeaturedStories(featured.length > 0 ? featured : stories.slice(0, 3));
-      } catch (error) {
-        console.error('Failed to load stories:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    loadStories();
-    
     return () => clearTimeout(timer);
-  }, [siteConfig]);
+  }, []);
 
   // Modern color scheme - get from site config or use defaults
   const primaryColor = siteConfig?.colors?.primary || '#6366F1'; // Indigo
@@ -98,33 +91,25 @@ const Index = () => {
   const siteDescription = siteConfig?.seo?.description || 'Discover the latest in tech, digital transformation, and innovation through engaging articles and exclusive 5-minute storytelling sessions from across India.';
   const siteKeywords = siteConfig?.seo?.keywords || 'tech, india, storytelling, innovation, digital transformation';
 
-  // Upcoming events
-  const upcomingEvents = [
-    {
-      id: '1',
-      title: 'Decoding the Future: AI in Indian Agriculture',
-      date: 'July 15, 2023',
-      time: '6:00 PM IST',
-      location: 'Online Webinar',
-      type: 'Webinar',
-    },
-    {
-      id: '2',
-      title: 'Women in Tech: Breaking Barriers in Indian Startups',
-      date: 'July 22, 2023',
-      time: '5:30 PM IST',
-      location: 'TheBoolean HQ, Bangalore',
-      type: 'Panel Discussion',
-    },
-    {
-      id: '3',
-      title: 'Hack for India: National Coding Challenge',
-      date: 'August 5-7, 2023',
-      time: 'All day',
-      location: 'Multiple locations across India',
-      type: 'Hackathon',
-    },
-  ];
+  // Render stories (replace this with your card/component as needed)
+  const renderStories = () => (
+    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 py-8">
+      {stories.map(story => (
+        <ArticleCard
+  key={story._id}
+  _id={story._id}
+  title={story.title}
+  excerpt={story.description || ''}
+  imageUrl={story.imageUrl || ''}
+  category={story.category || ''}
+  readTime={story.duration || ''}
+  date={story.date || ''}
+/>
+      ))}
+      {isLoading && <div className="col-span-full text-center py-4">Loading more...</div>}
+      {!hasMore && <div className="col-span-full text-center py-4 text-gray-400">No more stories.</div>}
+    </div>
+  );
 
   // Key highlights
   const keyHighlights = [
@@ -210,21 +195,8 @@ const Index = () => {
             </Link>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {featuredArticles.map((article, index) => (
-              <ArticleCard
-                key={article._id}
-                _id={article._id}
-                title={article.title}
-                excerpt={article.excerpt}
-                imageUrl={article.imageUrl}
-                category={article.category}
-                readTime={article.readTime}
-                date={article.date}
-                delay={index * 0.1}
-              />
-            ))}
-          </div>
+          {/* No featuredArticles section, use renderStories for all stories instead */}
+          {renderStories()}
         </div>
       </section>
       
@@ -273,56 +245,20 @@ const Index = () => {
                 </div>
               ))}
             </div>
-          ) : featuredStories.length > 0 ? (
+          ) : stories.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {featuredStories.map((story, index) => (
-                <motion.div
+              {stories.map((story, index) => (
+                <ArticleCard
                   key={story._id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: isVisible ? 1 : 0, y: isVisible ? 0 : 20 }}
-                  transition={{ duration: 0.5, delay: 0.2 + index * 0.1 }}
-                  className="bg-white/80 backdrop-blur-sm rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all group"
-                >
-                  <div className="relative aspect-video overflow-hidden">
-                    <img 
-                      src={story.imageUrl || '/placeholder.svg'} 
-                      alt={story.title}
-                      className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src = '/placeholder.svg';
-                      }}
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
-                    <div className="absolute bottom-4 left-4 right-4">
-                      <span className="inline-block px-2 py-1 text-white text-xs rounded-full" style={{ backgroundColor: primaryColor }}>
-                        {story.category}
-                      </span>
-                      <div className="flex items-center mt-2 text-white/90 text-sm">
-                        <Headphones className="w-4 h-4 mr-1" />
-                        {story.duration}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="p-6">
-                    <h3 className="text-xl font-bold mb-2 group-hover:text-indigo-600 transition-colors line-clamp-2">
-                      {story.title}
-                    </h3>
-                    <p className="text-muted-foreground text-sm mb-4 line-clamp-2">
-                      {story.description || "A compelling tech story from across India."}
-                    </p>
-                    <p className="text-sm text-muted-foreground">By {story.author}</p>
-                  </div>
-                  <div className="px-6 pb-6">
-                    <Link 
-                      to={`/storytelling/${story._id}`} 
-                      className="inline-flex items-center text-sm font-medium"
-                      style={{ color: primaryColor }}
-                    >
-                      Listen to story
-                      <ArrowRight className="ml-1 h-4 w-4 group-hover:translate-x-1 transition-transform" />
-                    </Link>
-                  </div>
-                </motion.div>
+                  _id={story._id}
+                  title={story.title}
+                  excerpt={story.description || ''}
+                  imageUrl={story.imageUrl || ''}
+                  category={story.category || ''}
+                  readTime={story.duration || ''}
+                  date={story.date || ''}
+                  delay={index * 0.1}
+                />
               ))}
             </div>
           ) : (
@@ -342,80 +278,7 @@ const Index = () => {
         </div>
       </section>
       
-      {/* Upcoming Events Section */}
-      <section className="py-20">
-        <div className="container">
-          <div className="text-center max-w-3xl mx-auto mb-16">
-            <motion.span 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: isVisible ? 1 : 0 }}
-              transition={{ duration: 0.5 }}
-              className="inline-block mb-3 px-3 py-1 text-xs font-medium rounded-full"
-              style={{ backgroundColor: `${primaryColor}20`, color: primaryColor }}
-            >
-              Upcoming Events
-            </motion.span>
-            <motion.h2 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: isVisible ? 1 : 0, y: isVisible ? 0 : 20 }}
-              transition={{ duration: 0.5, delay: 0.1 }}
-              className="text-3xl md:text-4xl font-bold mb-4"
-            >
-              Join Our Tech Community
-            </motion.h2>
-            <motion.p 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: isVisible ? 1 : 0, y: isVisible ? 0 : 20 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-              className="text-muted-foreground"
-            >
-              Attend our webinars, workshops, and meetups to connect with like-minded tech enthusiasts.
-            </motion.p>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {upcomingEvents.map((event, index) => (
-              <motion.div
-                key={event.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: isVisible ? 1 : 0, y: isVisible ? 0 : 20 }}
-                transition={{ duration: 0.5, delay: 0.2 + index * 0.1 }}
-                className="bg-white/80 backdrop-blur-sm rounded-lg p-6 border hover:border-indigo-200 transition-all hover:shadow-md"
-                style={{ borderColor: `${primaryColor}10` }}
-              >
-                <div className="inline-block mb-4 px-2 py-1 text-xs rounded-full"
-                  style={{ backgroundColor: `${secondaryColor}10`, color: secondaryColor }}
-                >
-                  {event.type}
-                </div>
-                <h3 className="text-xl font-bold mb-4 hover:text-indigo-600 transition-colors">
-                  {event.title}
-                </h3>
-                <div className="space-y-3 text-sm text-muted-foreground mb-6">
-                  <div className="flex items-center">
-                    <Calendar className="w-4 h-4 mr-2" style={{ color: primaryColor }} />
-                    <span>{event.date}</span>
-                  </div>
-                  <div className="flex items-start">
-                    <Calendar className="w-4 h-4 mr-2" style={{ color: primaryColor }} />
-                    <span>{event.time}</span>
-                  </div>
-                  <div className="flex items-start">
-                    <Calendar className="w-4 h-4 mr-2" style={{ color: primaryColor }} />
-                    <span>{event.location}</span>
-                  </div>
-                </div>
-                <Button size="sm" variant="outline" className="hover:bg-indigo-50"
-                  style={{ borderColor: primaryColor, color: primaryColor }}
-                >
-                  Register Now
-                </Button>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-      
+
       {/* Call to Action */}
       <section className="py-16 text-white" style={{ background: `linear-gradient(to right, ${primaryColor}, ${secondaryColor})` }}>
         <div className="container">
@@ -526,24 +389,16 @@ const Index = () => {
               </h3>
               <ul className="space-y-4">
                 <li>
-                  <Link to="#" className="text-sm text-muted-foreground hover:text-indigo-600 transition-colors">
-                    Tech for Good: India Edition
-                  </Link>
+                  <span className="text-sm text-muted-foreground">Tech for Good: India Edition</span>
                 </li>
                 <li>
-                  <Link to="#" className="text-sm text-muted-foreground hover:text-indigo-600 transition-colors">
-                    Web Development Masterclass
-                  </Link>
+                  <span className="text-sm text-muted-foreground">Web Development Masterclass</span>
                 </li>
                 <li>
-                  <Link to="#" className="text-sm text-muted-foreground hover:text-indigo-600 transition-colors">
-                    AI in Indian Healthcare Symposium
-                  </Link>
+                  <span className="text-sm text-muted-foreground">AI in Indian Healthcare Symposium</span>
                 </li>
                 <li>
-                  <Link to="#" className="text-sm text-muted-foreground hover:text-indigo-600 transition-colors">
-                    Startup Funding Workshop
-                  </Link>
+                  <span className="text-sm text-muted-foreground">Startup Funding Workshop</span>
                 </li>
               </ul>
             </div>
