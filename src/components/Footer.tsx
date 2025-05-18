@@ -1,5 +1,6 @@
 
 import { Link } from 'react-router-dom';
+import NewsletterSignup from './NewsletterSignup';
 import { Mail, Phone, MapPin, Github, Twitter, Linkedin, Instagram } from 'lucide-react';
 
 const Footer = () => {
@@ -125,6 +126,10 @@ const Footer = () => {
           </div>
         </div>
 
+        {/* Newsletter Signup */}
+        <div className="mb-10">
+          <NewsletterSignup />
+        </div>
         <div className="border-t border-border/50 mt-10 pt-6 flex flex-col md:flex-row justify-between items-center">
           <p className="text-muted-foreground text-sm">
             © {new Date().getFullYear()} TheBoolean. All rights reserved.
