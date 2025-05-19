@@ -125,7 +125,9 @@ const Hero = () => {
           </h1>
           
           <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto animate-slide-up" style={{ animationDelay: '0.2s' }}>
-            Discover the latest in techno, digital transformation, and innovation through engaging articles, videos, and exclusive 5-minute storytelling sessions from across India.
+            Your ultimate source for technology news, digital transformation insights, and innovative stories from India. 
+            Dive into expert articles, engaging videos, and exclusive 5-minute storytelling sessions that explore the latest advancements in tech, AI, software development, 
+            and digital innovation across the Indian tech ecosystem.
           </p>
           
           <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 justify-center animate-slide-up" style={{ animationDelay: '0.3s' }}>

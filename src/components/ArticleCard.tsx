@@ -8,6 +8,7 @@ interface ArticleCardProps {
   excerpt: string;
   imageUrl: string;
   category: string;
+  tags?: string[];
   readTime: string;
   date: string;
   delay?: number;
@@ -37,9 +38,16 @@ const ArticleCard = ({ _id, title, excerpt, imageUrl, category, readTime, date, 
           />
         </div>
         <div className="p-6">
-          <span className="inline-block mb-2 px-3 py-1 bg-primary/10 text-primary text-xs font-medium rounded-full">
-            {category}
-          </span>
+          <div className="flex flex-wrap gap-2 mb-4">
+            <span className="inline-block px-2 py-1 bg-primary/10 text-primary text-xs font-medium rounded-full">
+              {category}
+            </span>
+            {tags?.map((tag, index) => (
+              <span key={index} className="inline-block px-2 py-1 bg-muted/10 text-muted text-xs font-medium rounded-full">
+                #{tag}
+              </span>
+            ))}
+          </div>
           <h3 className="text-xl font-semibold mb-2 group-hover:text-primary transition-colors line-clamp-2">
             {title}
           </h3>

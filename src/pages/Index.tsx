@@ -198,7 +198,70 @@ const Index = () => {
             </Link>
           </div>
           
-          {/* No featuredArticles section, use renderStories for all stories instead */}
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {stories.map(story => (
+              <ArticleCard
+                key={story._id}
+                _id={story._id}
+                title={story.title}
+                excerpt={story.description || ''}
+                imageUrl={story.imageUrl || ''}
+                category={story.category || ''}
+                tags={story.tags || []}
+                readTime={story.duration || ''}
+                date={story.date || ''}
+              />
+            ))}
+          </div>
+
+          {/* 5-minute Tech Stories Section */}
+          <div className="mt-20">
+            <div className="flex flex-col sm:flex-row justify-between items-center mb-16">
+              <div className="mb-6 sm:mb-0">
+                <motion.span 
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: isVisible ? 1 : 0 }}
+                  transition={{ duration: 0.5 }}
+                  className="inline-block mb-3 px-3 py-1 text-xs font-medium rounded-full"
+                  style={{ backgroundColor: `${primaryColor}20`, color: primaryColor }}
+                >
+                  5-Minute Stories
+                </motion.span>
+                <motion.h2
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: isVisible ? 1 : 0, y: isVisible ? 0 : 20 }}
+                  transition={{ duration: 0.5, delay: 0.1 }}
+                  className="text-3xl md:text-4xl font-bold"
+                >
+                  6-Min Tech Stories
+                </motion.h2>
+              </div>
+              <Link
+                to="/storytelling"
+                className="inline-flex items-center font-medium hover:underline group"
+                style={{ color: primaryColor }}
+              >
+                View all stories
+                <ArrowRight className="ml-1 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+              </Link>
+            </div>
+            
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {stories.filter(story => story.duration && parseInt(story.duration) <= 6).map(story => (
+                <ArticleCard
+                  key={story._id}
+                  _id={story._id}
+                  title={story.title}
+                  excerpt={story.description || ''}
+                  imageUrl={story.imageUrl || ''}
+                  category={story.category || ''}
+                  tags={story.tags || []}
+                  readTime={story.duration || ''}
+                  date={story.date || ''}
+                />
+              ))}
+            </div>
+          </div>
           {renderStories()}
         </div>
       </section>

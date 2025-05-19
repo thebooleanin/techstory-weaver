@@ -5,6 +5,7 @@ export interface Story {
   author: string;
   duration: string;
   category: string;
+  tags?: string[];
   date: string;
   description?: string;
   image?: string;
